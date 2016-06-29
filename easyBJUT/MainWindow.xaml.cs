@@ -14,7 +14,6 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
 using System.Diagnostics;
-using System.Threading;
 
 
 namespace easyBJUT
@@ -89,7 +88,7 @@ namespace easyBJUT
             if (u_name == "" || u_password == "" || icode == "")
                 MessageBox.Show("请输入正确的登录信息！");
             else
-            {                
+            {
                 p.StandardInput.WriteLine(@"2");
                 p.StandardInput.WriteLine(u_name);
                 p.StandardInput.WriteLine(u_password);
@@ -139,6 +138,11 @@ namespace easyBJUT
             {
                 MessageBox.Show(err.Message);
             }
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+
         }
 
     }
