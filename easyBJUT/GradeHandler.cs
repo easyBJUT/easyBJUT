@@ -180,6 +180,7 @@ namespace MsgHandler
         }
         #endregion
 
+
         #region ----------计算加权平均分----------
         /// <summary>
         ///     计算加权平均分
@@ -194,7 +195,6 @@ namespace MsgHandler
             {
                 weightedMean = 0;
                 MessageBox.Show("[ERROR]No data to calculate weighted mean.");
-                //Console.WriteLine("[ERROR]No data to calculate weighted mean.");
                 return false;
             }
 
@@ -205,7 +205,7 @@ namespace MsgHandler
                 foreach (DataRow dr in calculateData.Rows)
                 {
                     //如果成绩为数字且不是第二课堂性质的课程，计算加权
-                    if (Regex.IsMatch(Convert.ToString(dr["成绩"]), pattern) && !Convert.ToString(dr["课程性质"]).Equals("校选修课"))
+                    if (Regex.IsMatch(Convert.ToString(dr["成绩"]), pattern) && !Convert.ToString(dr["课程性质"]).Equals("校选修课") && Convert.ToInt32(dr["成绩"]) >= 60)
                     {
                         sumOfCredit += Convert.ToDouble(dr["学分"]);
                         sumOfGrade += Convert.ToDouble(dr["成绩"]) * Convert.ToDouble(dr["学分"]);
@@ -219,7 +219,6 @@ namespace MsgHandler
             {
                 weightedMean = -1;
                 MessageBox.Show("{0}", e.Message);
-                //Console.WriteLine("{0}", e.Message);
                 return false;
             }
         }
