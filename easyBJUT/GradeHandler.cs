@@ -180,6 +180,7 @@ namespace MsgHandler
         }
         #endregion
 
+
         #region ----------计算加权平均分----------
         /// <summary>
         ///     计算加权平均分
@@ -194,7 +195,6 @@ namespace MsgHandler
             {
                 weightedMean = 0;
                 MessageBox.Show("[ERROR]No data to calculate weighted mean.");
-                //Console.WriteLine("[ERROR]No data to calculate weighted mean.");
                 return false;
             }
 
@@ -219,7 +219,6 @@ namespace MsgHandler
             {
                 weightedMean = -1;
                 MessageBox.Show("{0}", e.Message);
-                //Console.WriteLine("{0}", e.Message);
                 return false;
             }
         }
