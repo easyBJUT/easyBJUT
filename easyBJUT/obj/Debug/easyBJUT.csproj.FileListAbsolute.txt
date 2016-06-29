@@ -1,0 +1,30 @@
+c:\users\zhangyf\documents\visual studio 2013\Projects\easyBJUT\easyBJUT\bin\Debug\easyBJUT.exe.config
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\easyBJUT.csprojResolveAssemblyReference.cache
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\GradeWindow.baml
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\MainWindow.baml
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\GradeWindow.g.cs
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\MainWindow.g.cs
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\App.g.cs
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\easyBJUT_MarkupCompile.cache
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\easyBJUT.g.resources
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\easyBJUT.Properties.Resources.resources
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\easyBJUT.csproj.GenerateResource.Cache
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\bin\Debug\easyBJUT.exe
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\bin\Debug\easyBJUT.pdb
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\easyBJUT.exe
+C:\Users\zhangyf\Documents\Visual Studio 2013\Projects\easyBJUT\easyBJUT\obj\Debug\easyBJUT.pdb
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\bin\Debug\easyBJUT.exe.config
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\easyBJUT.exe
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\easyBJUT.pdb
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\bin\Debug\easyBJUT.exe
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\bin\Debug\easyBJUT.pdb
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\easyBJUT.csprojResolveAssemblyReference.cache
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\GradeWindow.baml
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\MainWindow.baml
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\GradeWindow.g.cs
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\MainWindow.g.cs
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\App.g.cs
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\easyBJUT_MarkupCompile.cache
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\easyBJUT.g.resources
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\easyBJUT.Properties.Resources.resources
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\obj\Debug\easyBJUT.csproj.GenerateResource.Cache

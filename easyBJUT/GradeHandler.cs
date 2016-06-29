@@ -205,7 +205,7 @@ namespace MsgHandler
                 foreach (DataRow dr in calculateData.Rows)
                 {
                     //如果成绩为数字且不是第二课堂性质的课程，计算加权
-                    if (Regex.IsMatch(Convert.ToString(dr["成绩"]), pattern) && !Convert.ToString(dr["课程性质"]).Equals("校选修课"))
+                    if (Regex.IsMatch(Convert.ToString(dr["成绩"]), pattern) && !Convert.ToString(dr["课程性质"]).Equals("校选修课") && Convert.ToInt32(dr["成绩"]) >= 60)
                     {
                         sumOfCredit += Convert.ToDouble(dr["学分"]);
                         sumOfGrade += Convert.ToDouble(dr["成绩"]) * Convert.ToDouble(dr["学分"]);
