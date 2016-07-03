@@ -14,7 +14,6 @@
                     <Button x:Name="sendMsg" Content="发表吐槽" HorizontalAlignment="Left" Height="25" Margin="679,494,0,0" VerticalAlignment="Top" Width="75"/>
                     <Label Content="北工大课程吐槽墙" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Height="49" Width="306" FontSize="36" FontFamily="STLiti"/>
                     <Label Content="选择课程：" HorizontalAlignment="Left" Height="25" Margin="36,64,0,0" VerticalAlignment="Top" Width="80"/>
-
                 </Grid>
             </TabItem>
             <TabItem Header="成绩查询">
