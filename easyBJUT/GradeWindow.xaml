@@ -3,73 +3,93 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="北工大easy教务" Height="600" Width="800">
     <Grid>
-        <Label Content="北工大easy教务" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Height="49" Width="251" FontSize="36" FontFamily="STLiti"/>
-        <Button x:Name="exit" Content="退出" HorizontalAlignment="Left" Height="25" Margin="706,29,0,0" VerticalAlignment="Top" Width="50" Click="exit_Click"/>
-        <ComboBox x:Name="schoolYear" HorizontalAlignment="Left" Height="25" Margin="80,64,0,0" VerticalAlignment="Top" Width="100">
-            <ComboBoxItem IsSelected="True" Height="19.2" Margin="0,0,0,0"></ComboBoxItem>
-            <ComboBoxItem>2015-2016</ComboBoxItem>
-            <ComboBoxItem>2014-2015</ComboBoxItem>
-            <ComboBoxItem>2013-2014</ComboBoxItem>
-        </ComboBox>
-        <ComboBox x:Name="credit" HorizontalAlignment="Left" Height="25" Margin="235,114,0,0" VerticalAlignment="Top" Width="100">
-            <ComboBoxItem IsSelected="True" Height="19.2" Margin="0,0,0,0"></ComboBoxItem>
-            <ComboBoxItem>0.5</ComboBoxItem>
-            <ComboBoxItem>1.0</ComboBoxItem>
-            <ComboBoxItem>1.5</ComboBoxItem>
-            <ComboBoxItem>2.0</ComboBoxItem>
-            <ComboBoxItem>2.5</ComboBoxItem>
-            <ComboBoxItem>3.0</ComboBoxItem>
-            <ComboBoxItem>3.5</ComboBoxItem>
-            <ComboBoxItem>4.0</ComboBoxItem>
-            <ComboBoxItem>4.5</ComboBoxItem>
-            <ComboBoxItem>5.0</ComboBoxItem>
-            <ComboBoxItem>5.5</ComboBoxItem>
-        </ComboBox>
-        <ComboBox x:Name="courseType" HorizontalAlignment="Left" Height="25" Margin="410,64,0,0" VerticalAlignment="Top" Width="150">
-            <ComboBoxItem IsSelected="True" Height="19.2" Margin="0,0,0,0"></ComboBoxItem>
-            <ComboBoxItem>公共必修课</ComboBoxItem>
-            <ComboBoxItem>实践环节</ComboBoxItem>
-            <ComboBoxItem>基础必修课</ComboBoxItem>
-            <ComboBoxItem>学科基础必修课一</ComboBoxItem>
-            <ComboBoxItem>学科基础必修课二</ComboBoxItem>
-            <ComboBoxItem>本专业选修课</ComboBoxItem>
-            <ComboBoxItem>本、跨专业选修课</ComboBoxItem>
-            <ComboBoxItem>校选修课</ComboBoxItem>
-            <ComboBoxItem>计算机基础选修课</ComboBoxItem>
-            <ComboBoxItem>专业认知</ComboBoxItem>
-            <ComboBoxItem>实践环节选修课</ComboBoxItem>
-            <ComboBoxItem>公共基础必修课</ComboBoxItem>
-            <ComboBoxItem>学科基础必修课</ComboBoxItem>
-            <ComboBoxItem>学科基础选修课</ComboBoxItem>
-            <ComboBoxItem>专业限选课</ComboBoxItem>
-            <ComboBoxItem>专业任选课</ComboBoxItem>
-            <ComboBoxItem>实践环节必修课</ComboBoxItem>
-            <ComboBoxItem>创新实践环节</ComboBoxItem>
-            <ComboBoxItem>通识教育选修课</ComboBoxItem>
-            <ComboBoxItem>学科基础必修课（辅）</ComboBoxItem>
-            <ComboBoxItem>专业必修课（辅）</ComboBoxItem>
-            <ComboBoxItem>实践环节（辅）</ComboBoxItem>
-        </ComboBox>
-        <ComboBox x:Name="semester" HorizontalAlignment="Left" Height="25" Margin="235,64,0,0" VerticalAlignment="Top" Width="100">
-            <ComboBoxItem IsSelected="True" Height="19.2" Margin="0,0,0,0"></ComboBoxItem>
-            <ComboBoxItem>1</ComboBoxItem>
-            <ComboBoxItem>2</ComboBoxItem>
-            <ComboBoxItem>3</ComboBoxItem>
-        </ComboBox>
+        <TabControl HorizontalAlignment="Left" Height="570" VerticalAlignment="Top" Width="794" Margin="0,0,-0.4,0">
+            <TabItem Header="吐槽墙">
+                <Grid Background="#FFFFFF">
+                    <RichTextBox x:Name="tucaoWall" HorizontalAlignment="Left" Height="464" Margin="321,10,0,0" VerticalAlignment="Top" Width="433">
+                        <FlowDocument/>
+                    </RichTextBox>
+                    <ListBox x:Name="courseList" HorizontalAlignment="Left" Height="421" Margin="36,98,0,0" VerticalAlignment="Top" Width="246"/>
+                    <TextBox x:Name="inputTextBox" HorizontalAlignment="Left" Height="25" Margin="321,494,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="335"/>
+                    <Button x:Name="sendMsg" Content="发表吐槽" HorizontalAlignment="Left" Height="25" Margin="679,494,0,0" VerticalAlignment="Top" Width="75"/>
+                    <Label Content="北工大课程吐槽墙" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Height="49" Width="306" FontSize="36" FontFamily="STLiti"/>
+                    <Label Content="选择课程：" HorizontalAlignment="Left" Height="25" Margin="36,64,0,0" VerticalAlignment="Top" Width="80"/>
 
-        <Label Content="学    年：" HorizontalAlignment="Left" Height="25" Margin="10,64,0,0" VerticalAlignment="Top" Width="65"/>
-        <Label Content="学期：" HorizontalAlignment="Left" Height="25" Margin="185,64,0,0" VerticalAlignment="Top" Width="45"/>
-        <Label Content="课程性质：" HorizontalAlignment="Left" Height="25" Margin="340,64,0,0" VerticalAlignment="Top" Width="65"/>
-        <Label Content="学分：" HorizontalAlignment="Left" Height="25" Margin="185,114,0,0" VerticalAlignment="Top" Width="45"/>
-        <Label Content="课程名称：" HorizontalAlignment="Left" Height="25" Margin="10,114,0,0" VerticalAlignment="Top" Width="65"/>
-        <TextBox x:Name="courseName" HorizontalAlignment="Left" Height="25" Margin="80,114,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="100"/>
-        <Button Content="查询" HorizontalAlignment="Left" Height="25" Margin="631,113,0,0" VerticalAlignment="Top" Width="70" Click="Button_Click"/>
-        <DataGrid x:Name="dataGrid1" HorizontalAlignment="Left" Height="372" Margin="92,161,0,0" VerticalAlignment="Top" Width="609" IsReadOnly="True">
-            <DataGrid.Columns>
+                </Grid>
+            </TabItem>
+            <TabItem Header="成绩查询">
+                <Grid Background="#FFFFFF" Margin="0,0,-5.6,-6.8">
+                    <Label Content="北工大easy教务" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Height="49" Width="251" FontSize="36" FontFamily="STLiti"/>
+                    <Button x:Name="exit" Content="退出" HorizontalAlignment="Left" Height="25" Margin="706,29,0,0" VerticalAlignment="Top" Width="50" Click="exit_Click"/>
+                    <ComboBox x:Name="schoolYear" HorizontalAlignment="Left" Height="25" Margin="80,64,0,0" VerticalAlignment="Top" Width="100">
+                        <ComboBoxItem IsSelected="True" Height="19.2" Margin="0,0,0,0"></ComboBoxItem>
+                        <ComboBoxItem>2015-2016</ComboBoxItem>
+                        <ComboBoxItem>2014-2015</ComboBoxItem>
+                        <ComboBoxItem>2013-2014</ComboBoxItem>
+                    </ComboBox>
+                    <ComboBox x:Name="credit" HorizontalAlignment="Left" Height="25" Margin="235,114,0,0" VerticalAlignment="Top" Width="100">
+                        <ComboBoxItem IsSelected="True" Height="19.2" Margin="0,0,0,0"></ComboBoxItem>
+                        <ComboBoxItem>0.5</ComboBoxItem>
+                        <ComboBoxItem>1.0</ComboBoxItem>
+                        <ComboBoxItem>1.5</ComboBoxItem>
+                        <ComboBoxItem>2.0</ComboBoxItem>
+                        <ComboBoxItem>2.5</ComboBoxItem>
+                        <ComboBoxItem>3.0</ComboBoxItem>
+                        <ComboBoxItem>3.5</ComboBoxItem>
+                        <ComboBoxItem>4.0</ComboBoxItem>
+                        <ComboBoxItem>4.5</ComboBoxItem>
+                        <ComboBoxItem>5.0</ComboBoxItem>
+                        <ComboBoxItem>5.5</ComboBoxItem>
+                    </ComboBox>
+                    <ComboBox x:Name="courseType" HorizontalAlignment="Left" Height="25" Margin="410,64,0,0" VerticalAlignment="Top" Width="150">
+                        <ComboBoxItem IsSelected="True" Height="19.2" Margin="0,0,0,0"></ComboBoxItem>
+                        <ComboBoxItem>公共必修课</ComboBoxItem>
+                        <ComboBoxItem>实践环节</ComboBoxItem>
+                        <ComboBoxItem>基础必修课</ComboBoxItem>
+                        <ComboBoxItem>学科基础必修课一</ComboBoxItem>
+                        <ComboBoxItem>学科基础必修课二</ComboBoxItem>
+                        <ComboBoxItem>本专业选修课</ComboBoxItem>
+                        <ComboBoxItem>本、跨专业选修课</ComboBoxItem>
+                        <ComboBoxItem>校选修课</ComboBoxItem>
+                        <ComboBoxItem>计算机基础选修课</ComboBoxItem>
+                        <ComboBoxItem>专业认知</ComboBoxItem>
+                        <ComboBoxItem>实践环节选修课</ComboBoxItem>
+                        <ComboBoxItem>公共基础必修课</ComboBoxItem>
+                        <ComboBoxItem>学科基础必修课</ComboBoxItem>
+                        <ComboBoxItem>学科基础选修课</ComboBoxItem>
+                        <ComboBoxItem>专业限选课</ComboBoxItem>
+                        <ComboBoxItem>专业任选课</ComboBoxItem>
+                        <ComboBoxItem>实践环节必修课</ComboBoxItem>
+                        <ComboBoxItem>创新实践环节</ComboBoxItem>
+                        <ComboBoxItem>通识教育选修课</ComboBoxItem>
+                        <ComboBoxItem>学科基础必修课（辅）</ComboBoxItem>
+                        <ComboBoxItem>专业必修课（辅）</ComboBoxItem>
+                        <ComboBoxItem>实践环节（辅）</ComboBoxItem>
+                    </ComboBox>
+                    <ComboBox x:Name="semester" HorizontalAlignment="Left" Height="25" Margin="235,64,0,0" VerticalAlignment="Top" Width="100">
+                        <ComboBoxItem IsSelected="True" Height="19.2" Margin="0,0,0,0"></ComboBoxItem>
+                        <ComboBoxItem>1</ComboBoxItem>
+                        <ComboBoxItem>2</ComboBoxItem>
+                        <ComboBoxItem>3</ComboBoxItem>
+                    </ComboBox>
 
-            </DataGrid.Columns>
-        </DataGrid>
-        <Label Content="加权：" HorizontalAlignment="Left" Height="25" Margin="422,113,0,0" VerticalAlignment="Top" Width="43"/>
-        <TextBox x:Name="weighting" HorizontalAlignment="Left" Height="25" Margin="470,114,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="90" IsReadOnly="True"/>
+                    <Label Content="学    年：" HorizontalAlignment="Left" Height="25" Margin="10,64,0,0" VerticalAlignment="Top" Width="65"/>
+                    <Label Content="学期：" HorizontalAlignment="Left" Height="25" Margin="185,64,0,0" VerticalAlignment="Top" Width="45"/>
+                    <Label Content="课程性质：" HorizontalAlignment="Left" Height="25" Margin="340,64,0,0" VerticalAlignment="Top" Width="65"/>
+                    <Label Content="学分：" HorizontalAlignment="Left" Height="25" Margin="185,114,0,0" VerticalAlignment="Top" Width="45"/>
+                    <Label Content="课程名称：" HorizontalAlignment="Left" Height="25" Margin="10,114,0,0" VerticalAlignment="Top" Width="65"/>
+                    <TextBox x:Name="courseName" HorizontalAlignment="Left" Height="25" Margin="80,114,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="100"/>
+                    <Button Content="查询" HorizontalAlignment="Left" Height="25" Margin="631,113,0,0" VerticalAlignment="Top" Width="70" Click="Button_Click"/>
+                    <DataGrid x:Name="dataGrid1" HorizontalAlignment="Left" Height="372" Margin="92,154,0,0" VerticalAlignment="Top" Width="609" IsReadOnly="True">
+                        <DataGrid.Columns>
+
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Label Content="加权：" HorizontalAlignment="Left" Height="25" Margin="422,113,0,0" VerticalAlignment="Top" Width="43"/>
+                    <TextBox x:Name="weighting" HorizontalAlignment="Left" Height="25" Margin="470,114,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="90" IsReadOnly="True"/>
+
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>
