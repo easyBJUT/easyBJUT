@@ -34,7 +34,7 @@ namespace easyBJUT
             try
             {
                 p = new Process();
-                p.StartInfo.FileName = @"v1.2.exe ";
+                p.StartInfo.FileName = @"Data.exe";
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardInput = true;
                 p.StartInfo.RedirectStandardOutput = true;

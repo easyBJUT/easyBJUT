@@ -136,6 +136,7 @@ namespace MsgHandler
             queryResult.Columns.Add("学分", typeof(string));
             queryResult.Columns.Add("绩点", typeof(string));
             queryResult.Columns.Add("成绩", typeof(string));
+            queryResult.Columns.Add("辅修标记", typeof(string));
 
             //如果数据被成功导入，则执行查询操作
             if (hasLoadData)
@@ -205,7 +206,7 @@ namespace MsgHandler
                 foreach (DataRow dr in calculateData.Rows)
                 {
                     //如果成绩为数字且不是第二课堂性质的课程，计算加权
-                    if (Regex.IsMatch(Convert.ToString(dr["成绩"]), pattern) && !Convert.ToString(dr["课程性质"]).Equals("校选修课") && Convert.ToInt32(dr["成绩"]) >= 60)
+                    if (Regex.IsMatch(Convert.ToString(dr["成绩"]), pattern) && !Convert.ToString(dr["课程性质"]).Equals("校选修课") && Convert.ToInt32(dr["成绩"]) >= 60 && Convert.ToInt32(dr["辅修标记"]) == 0)
                     {
                         sumOfCredit += Convert.ToDouble(dr["学分"]);
                         sumOfGrade += Convert.ToDouble(dr["成绩"]) * Convert.ToDouble(dr["学分"]);
