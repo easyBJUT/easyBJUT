@@ -1,0 +1,11 @@
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\bin\Debug\Server.exe.config
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\bin\Debug\Server.exe
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\bin\Debug\Server.pdb
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\bin\Debug\MsgPack.dll
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\bin\Debug\Newtonsoft.Json.dll
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\bin\Debug\Newtonsoft.Msgpack.dll
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\bin\Debug\MsgPack.xml
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\bin\Debug\Newtonsoft.Json.xml
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\obj\Debug\Server.exe
+D:\OneDrive\College\Software Engeerining\easyBJUT\Server\obj\Debug\Server.pdb
