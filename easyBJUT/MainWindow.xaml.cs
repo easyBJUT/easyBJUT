@@ -26,11 +26,28 @@ namespace easyBJUT
     {
         public String studentName;
         private Process p;
-        FileSystemWatcher fsw;
-        private bool flag;
+        private bool flag = true;
+        private FileSystemWatcher watcher = new FileSystemWatcher();
         public MainWindow()
         {
             InitializeComponent();
+
+
+            string filespath = Directory.GetCurrentDirectory()+"//error.txt";
+            if (File.Exists(filespath))
+            {
+                FileInfo fi = new FileInfo(filespath);
+                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
+                    fi.Attributes = FileAttributes.Normal;
+                File.Delete(filespath);
+            }
+
+            watcher.Path = Directory.GetCurrentDirectory();
+            watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            watcher.Filter = "*.txt";
+            watcher.Created += new FileSystemEventHandler(OnChanged);
+            watcher.EnableRaisingEvents = true;
+            
             try
             {
                 p = new Process();
@@ -49,7 +66,6 @@ namespace easyBJUT
             {
                 MessageBox.Show(e.Message);
             }
-            flag = true;
 
             System.Threading.Thread.Sleep(500);
 
@@ -78,8 +94,34 @@ namespace easyBJUT
             fsw.EnableRaisingEvents = true;*/
         }
 
+
+        private void OnChanged(object source, FileSystemEventArgs e)
+        {
+            // Specify what is done when a file is changed, created, or deleted.
+            flag = false;
+            p.WaitForExit();
+            p.Close();
+            p.Dispose();
+            string str;
+            StreamReader sr = new StreamReader(e.FullPath, Encoding.Default);
+            str = sr.ReadLine().ToString();
+            sr.Close();
+            MessageBox.Show(str);
+            if (File.Exists(e.FullPath))
+            {
+                FileInfo fi = new FileInfo(e.FullPath);
+                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
+                    fi.Attributes = FileAttributes.Normal;
+                File.Delete(e.FullPath);
+            }
+        }
+
+
+
         private void loginButton_Click(object sender, RoutedEventArgs e)
         {
+            
+
             String u_name;
             String u_password;
             String icode;
@@ -94,14 +136,62 @@ namespace easyBJUT
                 p.StandardInput.WriteLine(u_name);
                 p.StandardInput.WriteLine(u_password);
                 p.StandardInput.WriteLine(icode);
+//                p.WaitForExit();
+                Thread.Sleep(200);
+                if(flag)
+                {
+                    p.WaitForExit();
+                    p.Close();
+                    p.Dispose();
+                    GradeWindow GradeWindow = new GradeWindow();
+                    GradeWindow.Show();
+                    this.Close();
+                }
+                else
+                {
+                    p = new Process();
+                    p.StartInfo.FileName = @"Data.exe";
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.RedirectStandardInput = true;
+                    p.StartInfo.RedirectStandardOutput = true;
+                    p.StartInfo.RedirectStandardError = true;
+                    p.StartInfo.CreateNoWindow = true;
+                    p.Start();
 
-                p.WaitForExit();
-                p.Close();
-                p.Dispose();
+                    //p.StandardInput.WriteLine(@"v1.2.exe");
+                    p.StandardInput.WriteLine(@"1");
+                    flag = true;
 
-                GradeWindow GradeWindow = new GradeWindow();
-                GradeWindow.Show();
-                this.Close();
+                    password.Password = "";
+                    identifying_code.Text = "";
+
+                    identifyingCodeImage.Source = new BitmapImage();
+                    try
+                    {
+
+                        p.StandardInput.WriteLine(@"1");
+
+                        System.Threading.Thread.Sleep(500);
+
+                        String filePath = System.Environment.CurrentDirectory + "/image.jpg";
+                        BinaryReader binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
+                        FileInfo fileInfo = new FileInfo(filePath);
+                        byte[] bytes = binReader.ReadBytes((int)fileInfo.Length);
+                        binReader.Close();
+
+                        // Init bitmap
+                        BitmapImage bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = new MemoryStream(bytes);
+                        bitmap.EndInit();
+                        identifyingCodeImage.Source = bitmap;
+                    }
+                    catch (Exception err)
+                    {
+                        MessageBox.Show(err.Message);
+                    }
+                }
+                
             }     
         }
 
