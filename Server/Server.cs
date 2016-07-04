@@ -72,12 +72,12 @@ namespace Server
             }
             catch (SocketException se)
             {
-                Console.WriteLine("[SocketERROR]" + se.Message);
+                Console.WriteLine("[SocketError]" + se.Message);
                 return;
             }
             catch (Exception e)
             {
-                Console.WriteLine("[ERROR]" + e.Message);
+                Console.WriteLine("[Error]" + e.Message);
                 return;
             }
         }
@@ -115,12 +115,12 @@ namespace Server
                 }
                 catch (SocketException se)
                 {
-                    Console.WriteLine("[ERROR]" + se.Message);
+                    Console.WriteLine("[Error]" + se.Message);
                     return;
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("[ERROR]" + e.Message);
+                    Console.WriteLine("[Error]" + e.Message);
                     return;
                 }
             }
@@ -192,7 +192,7 @@ namespace Server
         private void CheckRoomList(string s_roomList)
         {
             // TODO : check the existence of chat file of each room
-            string[] roomList = s_roomList.Split(',');
+            List<string> roomList = (List<string>)JsonConvert.DeserializeObject(s_roomList, typeof(List<string>));
 
             foreach (string room in roomList)
             {
@@ -218,6 +218,8 @@ namespace Server
             // TODO : get the history of specific chat room
             string roomFile = roomId + ".txt";
 
+            List<string> msgList = new List<string>();
+
             String sendMsg = "";
 
             if (File.Exists(@roomFile))
@@ -226,7 +228,8 @@ namespace Server
                 
                 String lineMsg;
                 while ((lineMsg = sr.ReadLine()) != null)
-                    sendMsg += lineMsg + "\r\n";
+                    msgList.Add(lineMsg);
+                sendMsg = JsonConvert.SerializeObject(msgList);
             }
             else
             {
@@ -268,13 +271,19 @@ namespace Server
         {
             Console.WriteLine("User IP : " + clientIP + " has went off line.");
 
-            dictSocket[clientIP].Close();
-            Thread tmp = dictThread[clientIP];
+            if (dictSocket.ContainsKey(clientIP))
+            {
+                dictSocket[clientIP].Close();
+                dictSocket.Remove(clientIP);
+            }               
 
-            // Remove the socket and watching thread of off line user from dictionary
-            dictSocket.Remove(clientIP);
-            dictThread.Remove(clientIP);
-            tmp.Abort();
+            if (dictThread.ContainsKey(clientIP))
+            {
+                Thread tmp = dictThread[clientIP];
+                dictThread.Remove(clientIP);
+                tmp.Abort();
+            }
+                
         }
         #endregion
 
@@ -312,11 +321,11 @@ namespace Server
             }
             catch (SocketException se)
             {
-                Console.WriteLine("[SocketERROR] send message error : {0}", se.Message);
+                Console.WriteLine("[SocketError] send message error : {0}", se.Message);
             }
             catch (Exception e)
             {
-                Console.WriteLine("[ERROR] send message error : {0}", e.Message);
+                Console.WriteLine("[Error] send message error : {0}", e.Message);
             }
         }
         #endregion
