@@ -43,3 +43,5 @@ C:\Users\zhangyf\Documents\GitHub\easyBJUT\easyBJUT\obj\Debug\easyBJUT_MarkupCom
 C:\Users\zhangyf\Documents\GitHub\easyBJUT\easyBJUT\obj\Debug\easyBJUT.g.resources
 C:\Users\zhangyf\Documents\GitHub\easyBJUT\easyBJUT\obj\Debug\easyBJUT.Properties.Resources.resources
 C:\Users\zhangyf\Documents\GitHub\easyBJUT\easyBJUT\obj\Debug\easyBJUT.csproj.GenerateResource.Cache
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\bin\Debug\Newtonsoft.Json.dll
+D:\OneDrive\College\Software Engeerining\easyBJUT\easyBJUT\bin\Debug\Newtonsoft.Json.xml
