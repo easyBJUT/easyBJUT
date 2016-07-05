@@ -21,7 +21,7 @@ namespace Server
         private const byte INVALID_MESSAGE = 6;
 
         private const string ipAddr = "172.21.22.161";  // watching IP
-        private const int port = 3000;              // watching port
+        private const int port = 3000;                  // watching port
 
         private static Thread threadWatch = null;          // Thread which watches the connection request from client
         private static Socket socketWatch = null;          // Socket which watches the Server
@@ -48,6 +48,8 @@ namespace Server
         /// </summary>
         public static void StartServer()
         {
+            dictLocker.Add("room", new Object());
+
             // Create a socket, use IPv4, stream connection and TCP
             socketWatch = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -228,18 +230,22 @@ namespace Server
         /// </summary>
         private static void InitRoomLocker()
         {
-            string roomFile = "room.txt";
-            if (!File.Exists(@roomFile))
+            lock(Server.dictLocker["room"])
             {
-                FileStream fs = new FileStream(roomFile, FileMode.Create);
-                fs.Close();
-            }
+                string roomFile = "room.txt";
+                if (!File.Exists(@roomFile))
+                {
+                    FileStream fs = new FileStream(roomFile, FileMode.Create);
+                    fs.Close();
+                }
 
-            StreamReader sr = new StreamReader(roomFile, Encoding.Default);
+                StreamReader sr = new StreamReader(roomFile, Encoding.UTF8);
 
-            String lineMsg;
-            while ((lineMsg = sr.ReadLine()) != null)
-                dictLocker.Add(lineMsg.Trim(), new Object());
+                String lineMsg;
+                while ((lineMsg = sr.ReadLine()) != null)
+                    dictLocker.Add(lineMsg.Trim(), new Object());
+                sr.Close();
+            }           
 
         }
         #endregion
@@ -270,7 +276,7 @@ namespace Server
 
             foreach (string room in roomList)
             {
-                string roomFile = room + ".txt";
+                string roomFile = "DataBase\\"+room + ".txt";
                 if (!Server.dictLocker.ContainsKey(room))
                 {
                     Server.dictLocker.Add(room, new Object());
@@ -284,13 +290,15 @@ namespace Server
                         {
                             string romFile = "room.txt";
 
-                            FileStream f = new FileStream(romFile, FileMode.OpenOrCreate);
-                            StreamWriter sw = new StreamWriter(f);
+                            FileStream f = File.OpenWrite(romFile);
 
-                            sw.WriteLine(room);
+                            f.Position = f.Length;
 
-                            sw.Close();
-                            fs.Close();
+                            byte[] writeMsg = Encoding.UTF8.GetBytes(room+"\r\n");
+
+                            f.Write(writeMsg, 0, writeMsg.Length);
+
+                            f.Close();
                         }
                     }
                 }
@@ -307,7 +315,7 @@ namespace Server
         public void GetRoomMsg(string clientIP, string roomId)
         {
             // TODO : get the history of specific chat room
-            string roomFile = roomId + ".txt";
+            string roomFile = "DataBase\\"+roomId + ".txt";
 
             List<string> msgList = new List<string>();
 
@@ -319,11 +327,13 @@ namespace Server
             {
                 lock(Server.dictLocker[roomId])
                 {
-                    StreamReader sr = new StreamReader(roomFile, Encoding.Default);
+                    StreamReader sr = new StreamReader(roomFile, Encoding.UTF8);
 
                     String lineMsg;
                     while ((lineMsg = sr.ReadLine()) != null)
                         msgList.Add(lineMsg);
+
+                    sr.Close();
                 }                
 
                 msgHandler = new MsgHandler(roomId, msgList);
@@ -343,13 +353,15 @@ namespace Server
                     {
                         string romFile = "room.txt";
 
-                        FileStream f = new FileStream(romFile, FileMode.OpenOrCreate);
-                        StreamWriter sw = new StreamWriter(f);
+                        FileStream f = File.OpenWrite(romFile);
 
-                        sw.WriteLine(roomId);
+                        f.Position = f.Length;
 
-                        sw.Close();
-                        fs.Close();
+                        byte[] writeMsg = Encoding.UTF8.GetBytes(roomId + "\r\n");
+
+                        f.Write(writeMsg, 0, writeMsg.Length);
+
+                        f.Close();
                     }
                 }
 
@@ -373,19 +385,22 @@ namespace Server
             // TODO : put the message into the specific room
             MsgHandler msgHandler = (MsgHandler)JsonConvert.DeserializeObject(msg, typeof(MsgHandler));
 
-            string roomFile = msgHandler.roomId + ".txt";
+            string roomFile = "DataBase\\" + msgHandler.roomId + ".txt";
 
             if (Server.dictLocker.ContainsKey(msgHandler.roomId))
             {
                 lock (Server.dictLocker[msgHandler.roomId])
                 {
-                    FileStream fs = new FileStream(roomFile, FileMode.OpenOrCreate);
-                    StreamWriter sw = new StreamWriter(fs);
+                    FileStream fs = File.OpenWrite(roomFile);
+
+                    fs.Position = fs.Length;
 
                     foreach (string message in msgHandler.msgList)
-                        sw.WriteLine(message);
+                    {
+                        byte[] writeMsg = Encoding.UTF8.GetBytes(message + "\r\n");
+                        fs.Write(writeMsg, 0, writeMsg.Length);
+                    }
 
-                    sw.Close();
                     fs.Close();
                 }
             }
@@ -402,16 +417,20 @@ namespace Server
                     {
                         string romFile = "room.txt";
 
-                        FileStream f = new FileStream(romFile, FileMode.OpenOrCreate);
-                        StreamWriter sw = new StreamWriter(f);
+                        FileStream f = File.OpenWrite(romFile);
 
-                        sw.WriteLine(msgHandler.roomId);
+                        f.Position = f.Length;
 
-                        sw.Close();
-                        fs.Close();
+                        byte[] writeMsg = Encoding.UTF8.GetBytes(msgHandler.roomId + "\r\n");
+
+                        f.Write(writeMsg, 0, writeMsg.Length);
+
+                        f.Close();
                     }
                 }
             }
+
+            GetRoomMsg(clientIP, msgHandler.roomId);
             
 
                      
