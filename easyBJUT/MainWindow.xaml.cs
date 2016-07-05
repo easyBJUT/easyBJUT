@@ -24,7 +24,6 @@ namespace easyBJUT
     /// </summary>
     public partial class MainWindow : Window
     {
-        public String studentName;
         private Process p;
         private bool flag = true;
         private bool flagYzm = true;
@@ -82,6 +81,8 @@ namespace easyBJUT
             {
 
             }
+
+            Thread.Sleep(10);
             String filePath = System.Environment.CurrentDirectory + "/image.jpg";
 
 
@@ -170,7 +171,7 @@ namespace easyBJUT
                     {
 
                     }
-
+                    Thread.Sleep(10);
                     flag = true;
 
                     password.Password = "";
@@ -224,6 +225,7 @@ namespace easyBJUT
                 {
 
                 }
+                Thread.Sleep(10);
 
                 String filePath = System.Environment.CurrentDirectory + "/image.jpg";
                 BinaryReader binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
@@ -245,15 +247,7 @@ namespace easyBJUT
         }
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            string filespath = Directory.GetCurrentDirectory() + "/score.xls";
-            if (File.Exists(filespath))
-            {
-                FileInfo fi = new FileInfo(filespath);
-                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
-                    fi.Attributes = FileAttributes.Normal;
-                File.Delete(filespath);
-            }
-            filespath = Directory.GetCurrentDirectory() + "/image.jpg";
+            string filespath = Directory.GetCurrentDirectory() + "/image.jpg";
             if (File.Exists(filespath))
             {
                 FileInfo fi = new FileInfo(filespath);

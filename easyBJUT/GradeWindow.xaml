@@ -4,18 +4,6 @@
         Title="北工大easy教务" Height="600" Width="800">
     <Grid>
         <TabControl HorizontalAlignment="Left" Height="570" VerticalAlignment="Top" Width="794">
-            <TabItem Header="吐槽墙">
-                <Grid Background="#FFFFFF">
-                    <RichTextBox x:Name="tucaoWall" HorizontalAlignment="Left" Height="464" Margin="321,10,0,0" VerticalAlignment="Top" Width="433">
-                        <FlowDocument/>
-                    </RichTextBox>
-                    <ListBox x:Name="courseList" HorizontalAlignment="Left" Height="421" Margin="36,98,0,0" VerticalAlignment="Top" Width="246"/>
-                    <TextBox x:Name="inputTextBox" HorizontalAlignment="Left" Height="25" Margin="321,494,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="335"/>
-                    <Button x:Name="sendMsg" Content="发表吐槽" HorizontalAlignment="Left" Height="25" Margin="679,494,0,0" VerticalAlignment="Top" Width="75"/>
-                    <Label Content="北工大课程吐槽墙" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Height="49" Width="306" FontSize="36" FontFamily="STLiti"/>
-                    <Label Content="选择课程：" HorizontalAlignment="Left" Height="25" Margin="36,64,0,0" VerticalAlignment="Top" Width="80"/>
-                </Grid>
-            </TabItem>
             <TabItem Header="成绩查询">
                 <Grid Background="#FFFFFF" Margin="0,0,-5.6,-6.8">
                     <Label Content="北工大easy教务" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Height="49" Width="251" FontSize="36" FontFamily="STLiti"/>
@@ -87,6 +75,18 @@
                     <Label Content="加权：" HorizontalAlignment="Left" Height="25" Margin="422,113,0,0" VerticalAlignment="Top" Width="43"/>
                     <TextBox x:Name="weighting" HorizontalAlignment="Left" Height="25" Margin="470,114,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="90" IsReadOnly="True"/>
 
+                </Grid>
+            </TabItem>
+            <TabItem Header="吐槽墙">
+                <Grid Background="#FFFFFF">
+                    <RichTextBox x:Name="tucaoWall" HorizontalAlignment="Left" Height="464" Margin="321,10,0,0" VerticalAlignment="Top" Width="433">
+                        <FlowDocument/>
+                    </RichTextBox>
+                    <ListBox x:Name="courseList" HorizontalAlignment="Left" Height="421" Margin="36,98,0,0" VerticalAlignment="Top" Width="246"/>
+                    <TextBox x:Name="inputTextBox" HorizontalAlignment="Left" Height="25" Margin="321,494,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="335"/>
+                    <Button x:Name="sendMsg" Content="发表吐槽" HorizontalAlignment="Left" Height="25" Margin="679,494,0,0" VerticalAlignment="Top" Width="75"/>
+                    <Label Content="北工大课程吐槽墙" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Height="49" Width="306" FontSize="36" FontFamily="STLiti"/>
+                    <Label Content="选择课程：" HorizontalAlignment="Left" Height="25" Margin="36,64,0,0" VerticalAlignment="Top" Width="80"/>
                 </Grid>
             </TabItem>
         </TabControl>
