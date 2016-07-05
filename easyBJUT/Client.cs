@@ -22,7 +22,7 @@ namespace easyBJUT
         private const byte IS_NOT_RECEIVE_MSG = 5;
         private const byte INVALID_MESSAGE = 6;
 
-        private const string ipAddr = "127.0.0.1";  // watching IP
+        private const string ipAddr = "172.21.22.161";  // watching IP
         private const int port = 3000;              // watching port
 
         // client thread, used for receive message
@@ -99,6 +99,16 @@ namespace easyBJUT
         public void GoOffLine()
         {
             SendMsg(DISCONNECT, "");
+        }
+        #endregion
+
+        #region --- Request Room Message ---
+        /// <summary>
+        ///     request message
+        /// </summary>
+        public void RequestMsg(string roomId)
+        {
+            SendMsg(REQUEST_ROOM_MSG, roomId);
         }
         #endregion
 
