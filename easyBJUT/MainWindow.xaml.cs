@@ -27,7 +27,9 @@ namespace easyBJUT
         public String studentName;
         private Process p;
         private bool flag = true;
+        private bool flagYzm = true;
         private FileSystemWatcher watcher = new FileSystemWatcher();
+        private FileSystemWatcher fsw;
         public MainWindow()
         {
             InitializeComponent();
@@ -47,6 +49,14 @@ namespace easyBJUT
             watcher.Filter = "*.txt";
             watcher.Created += new FileSystemEventHandler(OnChanged);
             watcher.EnableRaisingEvents = true;
+           
+            fsw = new FileSystemWatcher();
+            fsw.Path = System.Environment.CurrentDirectory;
+            fsw.Filter = "image.jpg";
+            fsw.NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Size;
+            fsw.Created += new FileSystemEventHandler(changed);  //绑定事件触发后处理数据的方法。  
+            fsw.Changed += new FileSystemEventHandler(changed);
+            fsw.EnableRaisingEvents = true;
 
             try
             {
@@ -60,6 +70,7 @@ namespace easyBJUT
                 p.Start();
 
                 //p.StandardInput.WriteLine(@"v1.2.exe");
+                flagYzm = true;
                 p.StandardInput.WriteLine(@"1");
             }
             catch (Exception e)
@@ -67,8 +78,10 @@ namespace easyBJUT
                 MessageBox.Show(e.Message);
             }
 
-            System.Threading.Thread.Sleep(500);
+            while (flagYzm)
+            {
 
+            }
             String filePath = System.Environment.CurrentDirectory + "/image.jpg";
 
 
@@ -83,37 +96,18 @@ namespace easyBJUT
             bitmap.StreamSource = new MemoryStream(bytes);
             bitmap.EndInit();
             identifyingCodeImage.Source = bitmap;
-
-
-            /*fsw = new FileSystemWatcher();
-            fsw.Path = System.Environment.CurrentDirectory;
-            fsw.Filter = "score.xls";
-            fsw.NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.Size;
-            fsw.Created += new FileSystemEventHandler(changed);  //绑定事件触发后处理数据的方法。  
-            fsw.Changed += new FileSystemEventHandler(changed);
-            fsw.EnableRaisingEvents = true;*/
         }
 
+        private void changed(object source, FileSystemEventArgs e)
+        {
+            flagYzm = false;
+        }
 
         private void OnChanged(object source, FileSystemEventArgs e)
         {
             // Specify what is done when a file is changed, created, or deleted.
             flag = false;
-            p.WaitForExit();
-            p.Close();
-            p.Dispose();
-            string str;
-            StreamReader sr = new StreamReader(e.FullPath, Encoding.Default);
-            str = sr.ReadLine().ToString();
-            sr.Close();
-            MessageBox.Show(str);
-            if (File.Exists(e.FullPath))
-            {
-                FileInfo fi = new FileInfo(e.FullPath);
-                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
-                    fi.Attributes = FileAttributes.Normal;
-                File.Delete(e.FullPath);
-            }
+            
         }
 
 
@@ -136,19 +130,30 @@ namespace easyBJUT
                 p.StandardInput.WriteLine(u_name);
                 p.StandardInput.WriteLine(u_password);
                 p.StandardInput.WriteLine(icode);
-                //                p.WaitForExit();
-                Thread.Sleep(200);
+                p.WaitForExit();
+                p.Close();
+                p.Dispose(); 
                 if (flag)
                 {
-                    p.WaitForExit();
-                    p.Close();
-                    p.Dispose();
                     GradeWindow GradeWindow = new GradeWindow();
                     GradeWindow.Show();
                     this.Close();
                 }
                 else
                 {
+                    string filespath = Directory.GetCurrentDirectory() + "/error.txt";
+                    string str;
+                    StreamReader sr = new StreamReader(filespath, Encoding.Default);
+                    str = sr.ReadLine().ToString();
+                    sr.Close();
+                    MessageBox.Show(str);
+                    if (File.Exists(filespath))
+                    {
+                        FileInfo fi = new FileInfo(filespath);
+                        if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
+                            fi.Attributes = FileAttributes.Normal;
+                        File.Delete(filespath);
+                    }
                     p = new Process();
                     p.StartInfo.FileName = @"Data.exe";
                     p.StartInfo.UseShellExecute = false;
@@ -158,8 +163,14 @@ namespace easyBJUT
                     p.StartInfo.CreateNoWindow = true;
                     p.Start();
 
-                    //p.StandardInput.WriteLine(@"v1.2.exe");
+                    flagYzm = true;
                     p.StandardInput.WriteLine(@"1");
+
+                    while (flagYzm)
+                    {
+
+                    }
+
                     flag = true;
 
                     password.Password = "";
@@ -169,9 +180,7 @@ namespace easyBJUT
                     try
                     {
 
-                        p.StandardInput.WriteLine(@"1");
-
-                        System.Threading.Thread.Sleep(500);
+                       
 
                         String filePath = System.Environment.CurrentDirectory + "/image.jpg";
                         BinaryReader binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
@@ -208,9 +217,13 @@ namespace easyBJUT
             try
             {
 
+                flagYzm = true;
                 p.StandardInput.WriteLine(@"1");
 
-                System.Threading.Thread.Sleep(500);
+                while (flagYzm)
+                {
+
+                }
 
                 String filePath = System.Environment.CurrentDirectory + "/image.jpg";
                 BinaryReader binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
@@ -230,6 +243,25 @@ namespace easyBJUT
                 MessageBox.Show(err.Message);
             }
         }
-
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            string filespath = Directory.GetCurrentDirectory() + "/score.xls";
+            if (File.Exists(filespath))
+            {
+                FileInfo fi = new FileInfo(filespath);
+                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
+                    fi.Attributes = FileAttributes.Normal;
+                File.Delete(filespath);
+            }
+            filespath = Directory.GetCurrentDirectory() + "/image.jpg";
+            if (File.Exists(filespath))
+            {
+                FileInfo fi = new FileInfo(filespath);
+                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
+                    fi.Attributes = FileAttributes.Normal;
+                File.Delete(filespath);
+            }
+            base.OnClosing(e);
+        }
     }
 }

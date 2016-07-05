@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using MsgHandler;
 using System.Data;
+using System.IO;
+
 
 namespace easyBJUT
 {
@@ -109,6 +111,22 @@ namespace easyBJUT
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
+            string filespath = Directory.GetCurrentDirectory() + "/score.xls";
+            if (File.Exists(filespath))
+            {
+                FileInfo fi = new FileInfo(filespath);
+                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
+                    fi.Attributes = FileAttributes.Normal;
+                File.Delete(filespath);
+            }
+            filespath = Directory.GetCurrentDirectory() + "/image.jpg";
+            if (File.Exists(filespath))
+            {
+                FileInfo fi = new FileInfo(filespath);
+                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
+                    fi.Attributes = FileAttributes.Normal;
+                File.Delete(filespath);
+            }
             Application.Current.Shutdown();
             base.OnClosing(e);
         }
