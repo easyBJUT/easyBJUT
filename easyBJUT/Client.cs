@@ -92,6 +92,18 @@ namespace easyBJUT
         }
         #endregion
 
+        #region --- Request Message ---
+        /// <summary>
+        ///     request message
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <param name="msg"></param>
+        public void AddNewMsg(string roomId)
+        {
+            SendMsg(REQUEST_ROOM_MSG, roomId);
+        }
+        #endregion
+
         #region --- Off Line ---
         /// <summary>
         ///     go off line
