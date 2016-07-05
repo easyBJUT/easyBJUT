@@ -83,7 +83,9 @@ namespace easyBJUT
         /// <param name="msg"></param>
         public void AddNewMsg(string roomId, string msg)
         {
-            MsgHandler msgHandler = new MsgHandler(roomId, msg);
+            List<string> msgList = new List<string>();
+            msgList.Add(msg);
+            MsgHandler msgHandler = new MsgHandler(roomId, msgList);
             string sendMsg = JsonConvert.SerializeObject(msgHandler);
             
             SendMsg(SEND_MSG, sendMsg);
@@ -154,23 +156,35 @@ namespace easyBJUT
 
                     if (arrMsg[0] == SEND_MSG)
                     {
-
+                        ReceiveMsgFromServer(msgReceive);
                     }
                     else if (arrMsg[0] == IS_RECEIVE_MSG)
                     {
-
+                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        {
+                            MessageBox.Show("发送消息成功");
+                        }));
                     }
                     else if (arrMsg[0] == IS_NOT_RECEIVE_MSG)
                     {
-
+                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        {
+                            MessageBox.Show("[Error]发送消息失败");
+                        }));
                     }
                     else if (arrMsg[0] == INVALID_MESSAGE)
                     {
-
+                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        {
+                            MessageBox.Show("[Error]通信过程出错");
+                        }));
                     }
                     else
                     {
-
+                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        {
+                            MessageBox.Show("[Error]通信过程出错");
+                        }));
                     }
 
                 }
@@ -187,16 +201,46 @@ namespace easyBJUT
             }
         }
         #endregion
+
+        #region --- Receive Room History Message ---
+        /// <summary>
+        ///     Receive Message
+        /// </summary>
+        /// <param name="msgReceive"></param>
+        private void ReceiveMsgFromServer(string msgReceive)
+        {
+            MsgHandler msgHandler = (MsgHandler)JsonConvert.DeserializeObject(msgReceive, typeof(MsgHandler));
+            string roomId = msgHandler.roomId;
+            List<string> msgList = msgHandler.msgList;
+
+            Application.Current.Dispatcher.Invoke(new Action(delegate
+            {
+                /* if (当前选中的房间Id == roomId)
+                    foreach (string msg in msgList)
+                    {
+                        // TODO : 将消息逐一添加到显示框中
+                        
+                    }
+                 */
+            }));
+        }
+        #endregion
     }
 
     public struct MsgHandler
     {
         public string roomId;
-        public string msg;
+        public List<string> msgList;
 
-        public MsgHandler(string r, string m)
+        public MsgHandler(string r)
         {
-            roomId = r; msg = m;
+            roomId = r;
+            msgList = new List<string>();
+        }
+
+        public MsgHandler(string r, List<string> m)
+        {
+            roomId = r; msgList = m;
         }
     }
 }
