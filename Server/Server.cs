@@ -220,7 +220,9 @@ namespace Server
 
             List<string> msgList = new List<string>();
 
-            String sendMsg = "";
+            MsgHandler msgHandler;
+
+            String sendMsg;
 
             if (File.Exists(@roomFile))
             {
@@ -229,15 +231,22 @@ namespace Server
                 String lineMsg;
                 while ((lineMsg = sr.ReadLine()) != null)
                     msgList.Add(lineMsg);
-                sendMsg = JsonConvert.SerializeObject(msgList);
+
+                msgHandler = new MsgHandler(roomId, msgList);
+
+                sendMsg = JsonConvert.SerializeObject(msgHandler);
             }
             else
             {
                 FileStream fs = new FileStream(roomFile, FileMode.Create);
                 fs.Close();
+
+                msgHandler = new MsgHandler(roomId);
+
+                sendMsg = JsonConvert.SerializeObject(msgHandler);
             }
 
-            SendMessage(clientIP, REQUEST_ROOM_MSG, sendMsg);
+            SendMessage(clientIP, SEND_MSG, sendMsg);
         }
         #endregion
 
@@ -256,7 +265,10 @@ namespace Server
 
             FileStream fs = new FileStream(roomFile, FileMode.OpenOrCreate);
             StreamWriter sw = new StreamWriter(fs);
-            sw.WriteLine(msgHandler.msg);
+            
+            foreach (string message in msgHandler.msgList)
+                sw.WriteLine(message);
+
             sw.Close();
             fs.Close();
         }
@@ -334,11 +346,17 @@ namespace Server
     public struct MsgHandler
     {
         public string roomId;
-        public string msg;
+        public List<string> msgList;
 
-        public MsgHandler(string r, string m)
+        public MsgHandler(string r)
         {
-            roomId = r; msg = m;
+            roomId = r;
+            msgList = new List<string>();
+        }
+
+        public MsgHandler(string r, List<string> m)
+        {
+            roomId = r; msgList = m;
         }
     }
 }
