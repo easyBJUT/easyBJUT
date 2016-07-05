@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="北工大easy教务" Height="600" Width="800">
     <Grid>
-        <TabControl HorizontalAlignment="Left" Height="570" VerticalAlignment="Top" Width="794" Margin="0,0,-0.4,0">
+        <TabControl HorizontalAlignment="Left" Height="570" VerticalAlignment="Top" Width="794">
             <TabItem Header="吐槽墙">
                 <Grid Background="#FFFFFF">
                     <RichTextBox x:Name="tucaoWall" HorizontalAlignment="Left" Height="464" Margin="321,10,0,0" VerticalAlignment="Top" Width="433">
