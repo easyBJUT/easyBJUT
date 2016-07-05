@@ -20,7 +20,7 @@ namespace Server
         private const byte IS_NOT_RECEIVE_MSG = 5;
         private const byte INVALID_MESSAGE = 6;
 
-        private const string ipAddr = "172.21.22.161";  // watching IP
+        private const string ipAddr = "127.0.0.1";  // watching IP
         private const int port = 3000;              // watching port
 
         private static Thread threadWatch = null;          // Thread which watches the connection request from client

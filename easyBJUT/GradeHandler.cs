@@ -129,7 +129,6 @@ namespace MsgHandler
         {
             //初始化DataTable
             queryResult = new DataTable();
-            queryResult.Columns.Add("课程代码", typeof(string));
             queryResult.Columns.Add("学年", typeof(string));
             queryResult.Columns.Add("学期", typeof(string));
             queryResult.Columns.Add("课程名称", typeof(string));
@@ -181,6 +180,7 @@ namespace MsgHandler
             }
         }
         #endregion
+
 
         #region ----------计算加权平均分----------
         /// <summary>
