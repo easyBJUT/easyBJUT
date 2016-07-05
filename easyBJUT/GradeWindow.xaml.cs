@@ -26,8 +26,6 @@ namespace easyBJUT
         public GradeWindow()
         {
             InitializeComponent();
-            MainWindow m = new MainWindow();
-            courseName.Text = m.studentName;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -127,7 +125,6 @@ namespace easyBJUT
                     fi.Attributes = FileAttributes.Normal;
                 File.Delete(filespath);
             }
-            Application.Current.Shutdown();
             base.OnClosing(e);
         }
     }
