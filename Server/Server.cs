@@ -23,14 +23,20 @@ namespace Server
         private const string ipAddr = "127.0.0.1";  // watching IP
         private const int port = 3000;              // watching port
 
-        private Thread threadWatch = null;          // Thread which watches the connection request from client
-        private Socket socketWatch = null;          // Socket which watches the Server
+        private static Thread threadWatch = null;          // Thread which watches the connection request from client
+        private static Socket socketWatch = null;          // Socket which watches the Server
 
         // Saved all thread that receive message from client
-        private Dictionary<string, Thread> dictThread = new Dictionary<string, Thread>();
+        public static Dictionary<string, Thread> dictThread = new Dictionary<string, Thread>();
         // Saved all sockets for all clients
-        private Dictionary<string, Socket> dictSocket = new Dictionary<string, Socket>();
+        public static Dictionary<string, Socket> dictSocket = new Dictionary<string, Socket>();
+        // Saved all handler for all clients
+        public static Dictionary<string, Handler> dictHandler = new Dictionary<string, Handler>();
 
+        // File locker
+        public static Dictionary<string, Object> dictLocker = new Dictionary<string, object>();
+
+        private static Object disconnectLocker = new Object();
 
         public Server()
         {
@@ -40,7 +46,7 @@ namespace Server
         /// <summary>
         ///     start server
         /// </summary>
-        public void StartServer()
+        public static void StartServer()
         {
             // Create a socket, use IPv4, stream connection and TCP
             socketWatch = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -63,6 +69,8 @@ namespace Server
                 threadWatch.IsBackground = true;
                 // Start the thread
                 threadWatch.Start();
+
+                InitRoomLocker();
 
                 Console.WriteLine();
                 Console.WriteLine("                               ---Server Start---");
@@ -87,7 +95,7 @@ namespace Server
         /// <summary>
         ///     watch connection from client
         /// </summary>
-        private void WatchConnection()
+        private static void WatchConnection()
         {
             // keep watching 
             while (true)
@@ -112,6 +120,9 @@ namespace Server
 
                     dictThread.Add(socketKey, threadCommunicate);
 
+                    Handler handler = new Handler();
+                    dictHandler.Add(socketKey, handler);
+
                 }
                 catch (SocketException se)
                 {
@@ -131,7 +142,7 @@ namespace Server
         /// <summary>
         ///     watch the data send from client
         /// </summary>
-        private void ReceiveMsg(object socketClientPara)
+        private static void ReceiveMsg(object socketClientPara)
         {
             Socket socketClient = socketClientPara as Socket;
             string socketKey = socketClient.RemoteEndPoint.ToString();
@@ -171,25 +182,88 @@ namespace Server
                 string msg = Encoding.UTF8.GetString(msgReceiver, 1, length - 1);
 
                 if (msgReceiver[0] == CHECK_ROOM_LIST)
-                    CheckRoomList(msg);
+                    dictHandler[socketKey].CheckRoomList(msg);
                 else if (msgReceiver[0] == REQUEST_ROOM_MSG)
-                    GetRoomMsg(socketKey, msg);
+                    dictHandler[socketKey].GetRoomMsg(socketKey, msg);
                 else if (msgReceiver[0] == SEND_MSG)
-                    AddMsgToFile(socketKey, msg);
+                    dictHandler[socketKey].AddMsgToFile(socketKey, msg);
                 else if (msgReceiver[0] == DISCONNECT)
                     RemoveOfflineUser(socketKey);
                 else
-                    InvalidMsg(socketKey);
+                    dictHandler[socketKey].InvalidMsg(socketKey);
             }
         }
         #endregion
+
+        #region --- Remove Offline User ---
+        /// <summary>
+        ///     remove off line user
+        /// </summary>
+        /// <param name="clientIP">the client IP</param>
+        public static void RemoveOfflineUser(string clientIP)
+        {
+            lock (disconnectLocker)
+            {
+                Console.WriteLine("User IP : " + clientIP + " has went off line.");
+
+                if (dictSocket.ContainsKey(clientIP))
+                {
+                    dictSocket[clientIP].Close();
+                    dictSocket.Remove(clientIP);
+                }
+
+                if (dictThread.ContainsKey(clientIP))
+                {
+                    Thread tmp = dictThread[clientIP];
+                    dictThread.Remove(clientIP);
+                    tmp.Abort();
+                }
+            }          
+        }
+        #endregion
+
+        #region --- Init Room Locker ---
+        /// <summary>
+        ///     Init Room Locker
+        /// </summary>
+        private static void InitRoomLocker()
+        {
+            string roomFile = "room.txt";
+            if (!File.Exists(@roomFile))
+            {
+                FileStream fs = new FileStream(roomFile, FileMode.Create);
+                fs.Close();
+            }
+
+            StreamReader sr = new StreamReader(roomFile, Encoding.Default);
+
+            String lineMsg;
+            while ((lineMsg = sr.ReadLine()) != null)
+                dictLocker.Add(lineMsg.Trim(), new Object());
+
+        }
+        #endregion
+    }
+
+    class Handler
+    {
+        // Status Key
+        private const byte CHECK_ROOM_LIST = 0;
+        private const byte REQUEST_ROOM_MSG = 1;
+        private const byte SEND_MSG = 2;
+        private const byte DISCONNECT = 3;
+        private const byte IS_RECEIVE_MSG = 4;
+        private const byte IS_NOT_RECEIVE_MSG = 5;
+        private const byte INVALID_MESSAGE = 6;
+
+        public Handler() { }
 
         #region --- Check Room List ---
         /// <summary>
         ///     Check the existence of every room in room list received from client
         /// </summary>
         /// <param name="msg">string of room list</param>
-        private void CheckRoomList(string s_roomList)
+        public void CheckRoomList(string s_roomList)
         {
             // TODO : check the existence of chat file of each room
             List<string> roomList = (List<string>)JsonConvert.DeserializeObject(s_roomList, typeof(List<string>));
@@ -197,13 +271,30 @@ namespace Server
             foreach (string room in roomList)
             {
                 string roomFile = room + ".txt";
-                if (!File.Exists(@roomFile))
+                if (!Server.dictLocker.ContainsKey(room))
                 {
-                    FileStream fs = new FileStream(roomFile, FileMode.Create);
-                    fs.Close();
-                }                   
-            }
+                    Server.dictLocker.Add(room, new Object());
 
+                    lock(Server.dictLocker[room])
+                    {
+                        FileStream fs = new FileStream(roomFile, FileMode.Create);
+                        fs.Close();
+
+                        lock (Server.dictLocker["room"])
+                        {
+                            string romFile = "room.txt";
+
+                            FileStream f = new FileStream(romFile, FileMode.OpenOrCreate);
+                            StreamWriter sw = new StreamWriter(f);
+
+                            sw.WriteLine(room);
+
+                            sw.Close();
+                            fs.Close();
+                        }
+                    }
+                }
+            }
         }
         #endregion
 
@@ -213,7 +304,7 @@ namespace Server
         /// </summary>
         /// <param name="clientIP">the client IP</param>
         /// <param name="msg">the room ID</param>
-        private void GetRoomMsg(string clientIP, string roomId)
+        public void GetRoomMsg(string clientIP, string roomId)
         {
             // TODO : get the history of specific chat room
             string roomFile = roomId + ".txt";
@@ -224,13 +315,16 @@ namespace Server
 
             String sendMsg;
 
-            if (File.Exists(@roomFile))
+            if (Server.dictLocker.ContainsKey(roomId))
             {
-                StreamReader sr = new StreamReader(roomFile, Encoding.Default);
-                
-                String lineMsg;
-                while ((lineMsg = sr.ReadLine()) != null)
-                    msgList.Add(lineMsg);
+                lock(Server.dictLocker[roomId])
+                {
+                    StreamReader sr = new StreamReader(roomFile, Encoding.Default);
+
+                    String lineMsg;
+                    while ((lineMsg = sr.ReadLine()) != null)
+                        msgList.Add(lineMsg);
+                }                
 
                 msgHandler = new MsgHandler(roomId, msgList);
 
@@ -238,15 +332,33 @@ namespace Server
             }
             else
             {
-                FileStream fs = new FileStream(roomFile, FileMode.Create);
-                fs.Close();
+                Server.dictLocker.Add(roomId, new Object());
+
+                lock (Server.dictLocker[roomId])
+                {
+                    FileStream fs = new FileStream(roomFile, FileMode.Create);
+                    fs.Close();
+
+                    lock (Server.dictLocker["room"])
+                    {
+                        string romFile = "room.txt";
+
+                        FileStream f = new FileStream(romFile, FileMode.OpenOrCreate);
+                        StreamWriter sw = new StreamWriter(f);
+
+                        sw.WriteLine(roomId);
+
+                        sw.Close();
+                        fs.Close();
+                    }
+                }
 
                 msgHandler = new MsgHandler(roomId);
 
                 sendMsg = JsonConvert.SerializeObject(msgHandler);
             }
 
-            SendMessage(clientIP, SEND_MSG, sendMsg);
+            SendMessage(clientIP, SEND_MSG, sendMsg);          
         }
         #endregion
 
@@ -256,46 +368,53 @@ namespace Server
         /// </summary>
         /// <param name="clientIP">the client IP</param>
         /// <param name="msg">the string include the room id and received message</param>
-        private void AddMsgToFile(string clientIP, string msg)
+        public void AddMsgToFile(string clientIP, string msg)
         {
             // TODO : put the message into the specific room
             MsgHandler msgHandler = (MsgHandler)JsonConvert.DeserializeObject(msg, typeof(MsgHandler));
 
             string roomFile = msgHandler.roomId + ".txt";
 
-            FileStream fs = new FileStream(roomFile, FileMode.OpenOrCreate);
-            StreamWriter sw = new StreamWriter(fs);
-            
-            foreach (string message in msgHandler.msgList)
-                sw.WriteLine(message);
-
-            sw.Close();
-            fs.Close();
-        }
-        #endregion
-
-        #region --- Remove Offline User ---
-        /// <summary>
-        ///     remove off line user
-        /// </summary>
-        /// <param name="clientIP">the client IP</param>
-        private void RemoveOfflineUser(string clientIP)
-        {
-            Console.WriteLine("User IP : " + clientIP + " has went off line.");
-
-            if (dictSocket.ContainsKey(clientIP))
+            if (Server.dictLocker.ContainsKey(msgHandler.roomId))
             {
-                dictSocket[clientIP].Close();
-                dictSocket.Remove(clientIP);
-            }               
+                lock (Server.dictLocker[msgHandler.roomId])
+                {
+                    FileStream fs = new FileStream(roomFile, FileMode.OpenOrCreate);
+                    StreamWriter sw = new StreamWriter(fs);
 
-            if (dictThread.ContainsKey(clientIP))
-            {
-                Thread tmp = dictThread[clientIP];
-                dictThread.Remove(clientIP);
-                tmp.Abort();
+                    foreach (string message in msgHandler.msgList)
+                        sw.WriteLine(message);
+
+                    sw.Close();
+                    fs.Close();
+                }
             }
-                
+            else
+            {
+                Server.dictLocker.Add(msgHandler.roomId, new Object());
+
+                lock (Server.dictLocker[msgHandler.roomId])
+                {
+                    FileStream fs = new FileStream(roomFile, FileMode.Create);
+                    fs.Close();
+
+                    lock (Server.dictLocker["room"])
+                    {
+                        string romFile = "room.txt";
+
+                        FileStream f = new FileStream(romFile, FileMode.OpenOrCreate);
+                        StreamWriter sw = new StreamWriter(f);
+
+                        sw.WriteLine(msgHandler.roomId);
+
+                        sw.Close();
+                        fs.Close();
+                    }
+                }
+            }
+            
+
+                     
         }
         #endregion
 
@@ -304,7 +423,7 @@ namespace Server
         ///     Handle the situation of invalid message
         /// </summary>
         /// <param name="clientIP">the client ip</param>
-        private void InvalidMsg(string clientIP)
+        public void InvalidMsg(string clientIP)
         {
             // TODO : send invalid warning to client
             SendMessage(clientIP, INVALID_MESSAGE, "");
@@ -318,7 +437,7 @@ namespace Server
         /// <param name="clientIP">the client IP</param>
         /// <param name="flag">the message type</param>
         /// <param name="msg">message</param>
-        private void SendMessage(string clientIP, byte flag, string msg)
+        public void SendMessage(string clientIP, byte flag, string msg)
         {
             try
             {
@@ -329,7 +448,7 @@ namespace Server
                 sendArrMsg[0] = flag;
                 Buffer.BlockCopy(arrMsg, 0, sendArrMsg, 1, arrMsg.Length);
 
-                dictSocket[clientIP].Send(sendArrMsg);
+                Server.dictSocket[clientIP].Send(sendArrMsg);
             }
             catch (SocketException se)
             {
@@ -338,7 +457,7 @@ namespace Server
             catch (Exception e)
             {
                 Console.WriteLine("[Error] send message error : {0}", e.Message);
-            }
+            }             
         }
         #endregion
     }
