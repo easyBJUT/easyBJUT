@@ -182,7 +182,27 @@ namespace MsgHandler
         }
         #endregion
 
-
+        #region --- 得到课程id和名称 ---
+        /// <summary>
+        ///     获取课程信息
+        /// </summary>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public static bool GetCourseIdAndName(out DataTable result)
+        {
+            if (hasLoadData)
+            {
+                result = gradesTable.DefaultView.ToTable(false, new string[] { "课程代码", "课程名称" });
+                return true;
+            }
+            else
+            {
+                result = new DataTable();
+                return false;
+            }
+            
+        }
+        #endregion
 
         #region ----------计算加权平均分----------
         /// <summary>
