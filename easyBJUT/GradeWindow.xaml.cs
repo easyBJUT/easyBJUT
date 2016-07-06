@@ -396,7 +396,7 @@ namespace easyBJUT
 
             inputTextBox.Text = "";
 
-            AddNewMsg(room, nickname.Text.Trim()+ "："+msg);
+            AddNewMsg(room, nickname.Text.Trim() + "：" + DateTime.Now.ToString().Substring(0, DateTime.Now.ToString().Length-3) + "\r\n    " + msg);
         }
 
         private void update_Click(object sender, RoutedEventArgs e)

@@ -331,7 +331,11 @@ namespace Server
 
                     String lineMsg;
                     while ((lineMsg = sr.ReadLine()) != null)
+                    {
+                        lineMsg += ("\r\n" + sr.ReadLine());
                         msgList.Add(lineMsg);
+                    }
+                        
 
                     sr.Close();
                 }                
