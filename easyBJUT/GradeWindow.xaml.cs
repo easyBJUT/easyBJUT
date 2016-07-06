@@ -14,6 +14,11 @@ using System.Windows.Shapes;
 using MsgHandler;
 using System.Data;
 using System.IO;
+using System.Threading;
+using System.Net.Sockets;
+using System.Net;
+using Newtonsoft.Json;
+using System.Collections.ObjectModel;
 
 
 namespace easyBJUT
@@ -23,9 +28,66 @@ namespace easyBJUT
     /// </summary>
     public partial class GradeWindow : Window
     {
+        // Status Key
+        private const byte CHECK_ROOM_LIST = 0;
+        private const byte REQUEST_ROOM_MSG = 1;
+        private const byte SEND_MSG = 2;
+        private const byte DISCONNECT = 3;
+        private const byte IS_RECEIVE_MSG = 4;
+        private const byte IS_NOT_RECEIVE_MSG = 5;
+        private const byte INVALID_MESSAGE = 6;
+
+        private const string ipAddr = "172.21.22.161";  // watching IP
+        private const int port = 3000;              // watching port
+
+        // client thread, used for receive message
+        private Thread threadClient = null;
+        // client socket, used for connect server
+        private Socket socketClient = null;
+
+        private List<string> chatRoom;
+
         public GradeWindow()
         {
             InitializeComponent();
+
+            chatRoom = new List<string>();
+            courseList.ItemsSource = chatRoom;
+
+            // get IP address
+            IPAddress address = IPAddress.Parse(ipAddr);
+            // create the endpoint
+            IPEndPoint endpoint = new IPEndPoint(address, port);
+            // create the socket, use IPv4, stream connection and TCP protocol
+            socketClient = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
+                // Connect to the Server
+                socketClient.Connect(endpoint);
+
+                threadClient = new Thread(ReceiveMsg);
+                threadClient.IsBackground = true;
+                threadClient.Start();
+
+                GradeHandler.LoadDataFromExcel();
+
+                DataTable dataTable;
+                while(!GradeHandler.GetCourseIdAndName(out dataTable));
+
+                foreach (DataRow dr in dataTable.Rows)
+                    chatRoom.Add(Convert.ToString(dr["课程名称"])+"("+Convert.ToString(dr["课程代码"])+")");
+
+                CheckRoomList(chatRoom);
+
+            }
+            catch (SocketException se)
+            {
+                MessageBox.Show("[SocketError]Connection failed: " + se.Message);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("[Error]Connection failed: " + ex.Message);
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -88,7 +150,7 @@ namespace easyBJUT
             if (!flag)
                 queryString = "*";
             flag = false;
-            GradeHandler.LoadDataFromExcel();
+
             if (GradeHandler.QueryData(queryString, out dt))
             {
                 dataGrid1.ItemsSource = dt.DefaultView;
@@ -125,7 +187,234 @@ namespace easyBJUT
                     fi.Attributes = FileAttributes.Normal;
                 File.Delete(filespath);
             }
+            GoOffLine();
             base.OnClosing(e);
+        }
+
+        #region --- Check Room List ---
+        /// <summary>
+        ///     check room list
+        /// </summary>
+        /// <param name="roomList"></param>
+        private void CheckRoomList(List<string> roomList)
+        {
+            string s_roomList = JsonConvert.SerializeObject(roomList);
+
+            SendMsg(CHECK_ROOM_LIST, s_roomList);
+        }
+        #endregion
+
+        #region --- Add New Message ---
+        /// <summary>
+        ///     add new message
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <param name="msg"></param>
+        private void AddNewMsg(string roomId, string msg)
+        {
+            List<string> msgList = new List<string>();
+            msgList.Add(msg);
+            MsgHandler msgHandler = new MsgHandler(roomId, msgList);
+            string sendMsg = JsonConvert.SerializeObject(msgHandler);
+            
+            SendMsg(SEND_MSG, sendMsg);
+        }
+        #endregion
+
+        #region --- Off Line ---
+        /// <summary>
+        ///     go off line
+        /// </summary>
+        private void GoOffLine()
+        {
+            SendMsg(DISCONNECT, "");
+        }
+        #endregion
+
+        #region --- Request Room Message ---
+        /// <summary>
+        ///     request message
+        /// </summary>
+        private void RequestMsg(string roomId)
+        {
+            SendMsg(REQUEST_ROOM_MSG, roomId);
+        }
+        #endregion
+
+        #region --- Send Message ---
+        /// <summary>
+        ///     Send Message
+        /// </summary>
+        /// <param name="flag">msg type</param>
+        /// <param name="msg">message</param>
+        private void SendMsg(byte flag, string msg)
+        {
+            try
+            {
+                byte[] arrMsg = Encoding.UTF8.GetBytes(msg);
+                byte[] sendArrMsg = new byte[arrMsg.Length + 1];
+
+                // set the msg type
+                sendArrMsg[0] = flag;
+                Buffer.BlockCopy(arrMsg, 0, sendArrMsg, 1, arrMsg.Length);
+
+                socketClient.Send(sendArrMsg);
+            }
+            catch (SocketException se)
+            {
+                Console.WriteLine("[SocketError] send message error : {0}", se.Message);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[Error] send message error : {0}", e.Message);
+            }
+        }
+        #endregion
+
+        #region --- Receive Message ---
+        /// <summary>
+        ///     receive message
+        /// </summary>
+        private void ReceiveMsg()
+        {
+            while (true)
+            {
+                // define a buffer for received message
+                byte[] arrMsg = new byte[1024 * 1024 * 2];
+
+                // length of message received
+                int length = -1;
+
+                try
+                {
+                    // get the message
+                    length = socketClient.Receive(arrMsg);
+
+                    // encoding the message
+                    string msgReceive = Encoding.UTF8.GetString(arrMsg, 1, length-1);
+
+                    if (arrMsg[0] == SEND_MSG)
+                    {
+                        ReceiveMsgFromServer(msgReceive);
+                    }
+                    else if (arrMsg[0] == IS_RECEIVE_MSG)
+                    {
+                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        {
+                            MessageBox.Show("发送消息成功");
+                        }));
+                    }
+                    else if (arrMsg[0] == IS_NOT_RECEIVE_MSG)
+                    {
+                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        {
+                            MessageBox.Show("[Error]发送消息失败");
+                        }));
+                    }
+                    else if (arrMsg[0] == INVALID_MESSAGE)
+                    {
+                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        {
+                            MessageBox.Show("[Error]通信过程出错");
+                        }));
+                    }
+                    else
+                    {
+                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        {
+                            MessageBox.Show("[Error]通信过程出错");
+                        }));
+                    }
+
+                }
+                catch (SocketException se)
+                {
+                    //MessageBox.Show("【错误】接收消息异常：" + se.Message);
+                    return;
+                }
+                catch (Exception e)
+                {
+                    //MessageBox.Show("【错误】接收消息异常：" + e.Message);
+                    return;
+                }
+            }
+        }
+        #endregion
+
+        #region --- Receive Room History Message ---
+        /// <summary>
+        ///     Receive Message
+        /// </summary>
+        /// <param name="msgReceive"></param>
+        private void ReceiveMsgFromServer(string msgReceive)
+        {
+            MsgHandler msgHandler = (MsgHandler)JsonConvert.DeserializeObject(msgReceive, typeof(MsgHandler));
+            string roomId = msgHandler.roomId;
+            List<string> msgList = msgHandler.msgList;
+
+            Application.Current.Dispatcher.Invoke(new Action(delegate
+            {
+                tucaoWall.Document.Blocks.Clear();
+                string room = (string)courseList.SelectedItem;
+                 if (room.Equals(roomId))
+                    foreach (string msg in msgList)
+                    {
+                        // TODO : 将消息逐一添加到显示框中
+                        Paragraph newParagraph = new Paragraph();
+
+                        InlineUIContainer inlineUIContainer = new InlineUIContainer()
+                        {
+                            Child = new TextBlock()
+                            {
+                                Foreground = new SolidColorBrush(Colors.Black),
+                                TextWrapping = TextWrapping.Wrap,
+                                Text = msg + "\r\n"
+                            }
+                        };
+                        newParagraph.Inlines.Add(inlineUIContainer);
+
+                        tucaoWall.Document.Blocks.Add(newParagraph);
+                    }
+                 
+            }));
+        }
+        #endregion
+
+        private void courseList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string room = (string)courseList.SelectedItem;
+
+            tucaoWall.Document.Blocks.Clear();
+
+            RequestMsg(room);
+        }
+
+        private void sendMsg_Click(object sender, RoutedEventArgs e)
+        {
+            string room = (string)courseList.SelectedItem;
+            string msg = (string)inputTextBox.Text;
+
+            inputTextBox.Text = "";
+
+            AddNewMsg(room, nickname.Text.Trim()+ "："+msg);
+        }
+
+        private void update_Click(object sender, RoutedEventArgs e)
+        {
+            string room = (string)courseList.SelectedItem;
+            RequestMsg(room);
+        }
+
+        private void nickname_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (nickname.Text.Trim().Equals(""))
+                nickname.Text = "学生";
+        }
+
+        private void nickname_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (nickname.Text.Trim().Equals("学生"))
+                nickname.Text = "";
         }
     }
 }
