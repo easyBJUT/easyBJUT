@@ -410,5 +410,11 @@ namespace easyBJUT
             if (nickname.Text.Trim().Equals(""))
                 nickname.Text = "学生";
         }
+
+        private void nickname_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (nickname.Text.Trim().Equals("学生"))
+                nickname.Text = "";
+        }
     }
 }
