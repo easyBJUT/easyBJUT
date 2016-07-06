@@ -79,16 +79,16 @@
             </TabItem>
             <TabItem Header="吐槽墙">
                 <Grid Background="#FFFFFF">
-                    <RichTextBox x:Name="tucaoWall" HorizontalAlignment="Left" Height="369" Margin="321,10,0,0" VerticalAlignment="Top" Width="433" IsReadOnly="True">
+                    <RichTextBox x:Name="tucaoWall" HorizontalAlignment="Left" Height="369" Margin="321,10,0,0" VerticalAlignment="Top" Width="433" IsReadOnly="True" VerticalScrollBarVisibility="Visible">
                         <FlowDocument/>
                     </RichTextBox>
                     <Button x:Name="update" Width="75" Height="25" Margin="680,449,32,69" Content="更新吐槽" Click="update_Click" />
                     <TextBox x:Name="nickname" Text="学生" Width="100" Height="30" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="650,290,0,0" LostFocus="nickname_LostFocus" GotFocus="nickname_GotFocus"/>
-                    <ListBox x:Name="courseList" HorizontalAlignment="Left" Height="421" Margin="36,98,0,0" VerticalAlignment="Top" Width="246" SelectionChanged="courseList_SelectionChanged" />
+                    <ListBox x:Name="courseList" HorizontalAlignment="Left" Height="382" Margin="36,137,0,0" VerticalAlignment="Top" Width="246" SelectionChanged="courseList_SelectionChanged" />
                     <TextBox x:Name="inputTextBox" HorizontalAlignment="Left" Height="122" Margin="321,397,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="335"/>
                     <Button x:Name="sendMsg" Content="发表吐槽" HorizontalAlignment="Left" Height="25" Margin="680,489,32,29" VerticalAlignment="Top" Width="75" Click="sendMsg_Click"/>
-                    <Label Content="北工大课程吐槽墙" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Height="49" Width="306" FontSize="36" FontFamily="STLiti"/>
-                    <Label Content="选择课程：" HorizontalAlignment="Left" Height="25" Margin="36,64,0,0" VerticalAlignment="Top" Width="80"/>
+                    <Label Content="选择课程：" HorizontalAlignment="Left" Height="25" Margin="36,107,0,0" VerticalAlignment="Top" Width="80"/>
+                    <Image x:Name="title" HorizontalAlignment="Left" Height="92" Margin="60,10,0,0" VerticalAlignment="Top" Width="190"/>
                 </Grid>
             </TabItem>
         </TabControl>
