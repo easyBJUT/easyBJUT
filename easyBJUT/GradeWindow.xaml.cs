@@ -19,6 +19,7 @@ using System.Net.Sockets;
 using System.Net;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
+using System.Web;
 
 
 namespace easyBJUT
@@ -29,13 +30,13 @@ namespace easyBJUT
     public partial class GradeWindow : Window
     {
         // Status Key
-        private const byte CHECK_ROOM_LIST = 0;
-        private const byte REQUEST_ROOM_MSG = 1;
-        private const byte SEND_MSG = 2;
-        private const byte DISCONNECT = 3;
-        private const byte IS_RECEIVE_MSG = 4;
-        private const byte IS_NOT_RECEIVE_MSG = 5;
-        private const byte INVALID_MESSAGE = 6;
+        private const char CHECK_ROOM_LIST = '0';
+        private const char REQUEST_ROOM_MSG = '1';
+        private const char SEND_MSG = '2';
+        private const char DISCONNECT = '3';
+        private const char IS_RECEIVE_MSG = '4';
+        private const char IS_NOT_RECEIVE_MSG = '5';
+        private const char INVALID_MESSAGE = '6';
 
         private const string ipAddr = "172.21.22.161";  // watching IP
         private const int port = 3000;              // watching port
@@ -281,20 +282,20 @@ namespace easyBJUT
         /// </summary>
         /// <param name="flag">msg type</param>
         /// <param name="msg">message</param>
-        private void SendMsg(byte flag, string msg)
+        private void SendMsg(char flag, string msg)
         {
             lock(sendLock)
             {
                 try
                 {
+                    msg = flag + msg;
+
+                    msg = WebUtility.HtmlEncode(msg);
+                    msg += '<';
+
                     byte[] arrMsg = Encoding.UTF8.GetBytes(msg);
-                    byte[] sendArrMsg = new byte[arrMsg.Length + 1];
 
-                    // set the msg type
-                    sendArrMsg[0] = flag;
-                    Buffer.BlockCopy(arrMsg, 0, sendArrMsg, 1, arrMsg.Length);
-
-                    socketClient.Send(sendArrMsg);
+                    socketClient.Send(arrMsg);
                 }
                 catch (SocketException se)
                 {
@@ -328,40 +329,53 @@ namespace easyBJUT
                     length = socketClient.Receive(arrMsg);
 
                     // encoding the message
-                    string msgReceive = Encoding.UTF8.GetString(arrMsg, 1, length-1);
+                    string tmp = Encoding.UTF8.GetString(arrMsg, 0, length);
 
-                    if (arrMsg[0] == SEND_MSG)
+                    string[] str = tmp.Split('<');
+                    
+                    foreach (string s in str)
                     {
-                        ReceiveMsgFromServer(msgReceive);
-                    }
-                    else if (arrMsg[0] == IS_RECEIVE_MSG)
-                    {
-                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        string msgReceive = WebUtility.HtmlDecode(s);
+
+                        if (msgReceive.Length > 0)
                         {
-                            MessageBox.Show("发送消息成功");
-                        }));
+                            if (msgReceive[0] == SEND_MSG)
+                            {
+                                ReceiveMsgFromServer(msgReceive.Substring(1, msgReceive.Length-1));
+                            }
+                            else if (msgReceive[0] == IS_RECEIVE_MSG)
+                            {
+                                Application.Current.Dispatcher.Invoke(new Action(delegate
+                                {
+                                    MessageBox.Show("发送消息成功");
+                                }));
+                            }
+                            else if (msgReceive[0] == IS_NOT_RECEIVE_MSG)
+                            {
+                                Application.Current.Dispatcher.Invoke(new Action(delegate
+                                {
+                                    MessageBox.Show("[Error]发送消息失败");
+                                }));
+                            }
+                            else if (msgReceive[0] == INVALID_MESSAGE)
+                            {
+                                Application.Current.Dispatcher.Invoke(new Action(delegate
+                                {
+                                    MessageBox.Show("[Error]通信过程出错");
+                                }));
+                            }
+                            else
+                            {
+                                Application.Current.Dispatcher.Invoke(new Action(delegate
+                                {
+                                    MessageBox.Show("[Error]通信过程出错");
+                                }));
+                            }
+                        }
+
                     }
-                    else if (arrMsg[0] == IS_NOT_RECEIVE_MSG)
-                    {
-                        Application.Current.Dispatcher.Invoke(new Action(delegate
-                        {
-                            MessageBox.Show("[Error]发送消息失败");
-                        }));
-                    }
-                    else if (arrMsg[0] == INVALID_MESSAGE)
-                    {
-                        Application.Current.Dispatcher.Invoke(new Action(delegate
-                        {
-                            MessageBox.Show("[Error]通信过程出错");
-                        }));
-                    }
-                    else
-                    {
-                        Application.Current.Dispatcher.Invoke(new Action(delegate
-                        {
-                            MessageBox.Show("[Error]通信过程出错");
-                        }));
-                    }
+
+                    
 
                 }
                 catch (SocketException se)

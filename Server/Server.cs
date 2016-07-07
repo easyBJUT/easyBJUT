@@ -6,19 +6,20 @@ using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
 using System.IO;
+using System.Web;
 
 namespace Server
 {
     class Server
     {
         // Status Key
-        private const byte CHECK_ROOM_LIST = 0;
-        private const byte REQUEST_ROOM_MSG = 1;
-        private const byte SEND_MSG = 2;
-        private const byte DISCONNECT = 3;
-        private const byte IS_RECEIVE_MSG = 4;
-        private const byte IS_NOT_RECEIVE_MSG = 5;
-        private const byte INVALID_MESSAGE = 6;
+        private const char CHECK_ROOM_LIST = '0';
+        private const char REQUEST_ROOM_MSG = '1';
+        private const char SEND_MSG = '2';
+        private const char DISCONNECT = '3';
+        private const char IS_RECEIVE_MSG = '4';
+        private const char IS_NOT_RECEIVE_MSG = '5';
+        private const char INVALID_MESSAGE = '6';
 
         private const string ipAddr = "172.21.22.161";  // watching IP
         private const int port = 3000;                  // watching port
@@ -181,18 +182,27 @@ namespace Server
                     return;
                 }
 
-                string msg = Encoding.UTF8.GetString(msgReceiver, 1, length - 1);
+                string msg = Encoding.UTF8.GetString(msgReceiver, 0, length);
 
-                if (msgReceiver[0] == CHECK_ROOM_LIST)
-                    dictHandler[socketKey].CheckRoomList(msg);
-                else if (msgReceiver[0] == REQUEST_ROOM_MSG)
-                    dictHandler[socketKey].GetRoomMsg(socketKey, msg);
-                else if (msgReceiver[0] == SEND_MSG)
-                    dictHandler[socketKey].AddMsgToFile(socketKey, msg);
-                else if (msgReceiver[0] == DISCONNECT)
-                    RemoveOfflineUser(socketKey);
-                else
-                    dictHandler[socketKey].InvalidMsg(socketKey);
+                string[] str = msg.Split('<');
+
+                foreach (string s in str)
+                {
+                    string tmp = WebUtility.HtmlDecode(s);
+                    if (tmp.Length > 0)
+                    {
+                        if (tmp[0] == CHECK_ROOM_LIST)
+                            dictHandler[socketKey].CheckRoomList(tmp.Substring(1, tmp.Length - 1));
+                        else if (tmp[0] == REQUEST_ROOM_MSG)
+                            dictHandler[socketKey].GetRoomMsg(socketKey, tmp.Substring(1, tmp.Length - 1));
+                        else if (tmp[0] == SEND_MSG)
+                            dictHandler[socketKey].AddMsgToFile(socketKey, tmp.Substring(1, tmp.Length - 1));
+                        else if (tmp[0] == DISCONNECT)
+                            RemoveOfflineUser(socketKey);
+                        else
+                            dictHandler[socketKey].InvalidMsg(socketKey);
+                    }
+                }                
             }
         }
         #endregion
@@ -270,13 +280,13 @@ namespace Server
     class Handler
     {
         // Status Key
-        private const byte CHECK_ROOM_LIST = 0;
-        private const byte REQUEST_ROOM_MSG = 1;
-        private const byte SEND_MSG = 2;
-        private const byte DISCONNECT = 3;
-        private const byte IS_RECEIVE_MSG = 4;
-        private const byte IS_NOT_RECEIVE_MSG = 5;
-        private const byte INVALID_MESSAGE = 6;
+        private const char CHECK_ROOM_LIST = '0';
+        private const char REQUEST_ROOM_MSG = '1';
+        private const char SEND_MSG = '2';
+        private const char DISCONNECT = '3';
+        private const char IS_RECEIVE_MSG = '4';
+        private const char IS_NOT_RECEIVE_MSG = '5';
+        private const char INVALID_MESSAGE = '6';
 
         public Handler() { }
 
@@ -537,18 +547,19 @@ namespace Server
         /// <param name="clientIP">the client IP</param>
         /// <param name="flag">the message type</param>
         /// <param name="msg">message</param>
-        public void SendMessage(string clientIP, byte flag, string msg)
+        public void SendMessage(string clientIP, char flag, string msg)
         {
             try
             {
+                
+                msg = flag + msg;
+
+                msg = WebUtility.HtmlEncode(msg);
+                msg += '<';
+
                 byte[] arrMsg = Encoding.UTF8.GetBytes(msg);
-                byte[] sendArrMsg = new byte[arrMsg.Length + 1];
 
-                // set the msg type
-                sendArrMsg[0] = flag;
-                Buffer.BlockCopy(arrMsg, 0, sendArrMsg, 1, arrMsg.Length);
-
-                Server.dictSocket[clientIP].Send(sendArrMsg);
+                Server.dictSocket[clientIP].Send(arrMsg);
             }
             catch (SocketException se)
             {
