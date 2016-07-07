@@ -40,6 +40,8 @@ namespace easyBJUT
         private const string ipAddr = "172.21.22.161";  // watching IP
         private const int port = 3000;              // watching port
 
+        private Object sendLock = new Object();
+
         // client thread, used for receive message
         private Thread threadClient = null;
         // client socket, used for connect server
@@ -52,6 +54,7 @@ namespace easyBJUT
             InitializeComponent();
             String filePath = System.Environment.CurrentDirectory + "/webwxgetmsgimg.png";
 
+            GradeHandler.LoadDataFromExcel();
 
             BinaryReader binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
             FileInfo fileInfo = new FileInfo(filePath);
@@ -82,8 +85,6 @@ namespace easyBJUT
                 threadClient = new Thread(ReceiveMsg);
                 threadClient.IsBackground = true;
                 threadClient.Start();
-
-                GradeHandler.LoadDataFromExcel();
 
                 DataTable dataTable;
                 while(!GradeHandler.GetCourseIdAndName(out dataTable));
@@ -282,25 +283,28 @@ namespace easyBJUT
         /// <param name="msg">message</param>
         private void SendMsg(byte flag, string msg)
         {
-            try
+            lock(sendLock)
             {
-                byte[] arrMsg = Encoding.UTF8.GetBytes(msg);
-                byte[] sendArrMsg = new byte[arrMsg.Length + 1];
+                try
+                {
+                    byte[] arrMsg = Encoding.UTF8.GetBytes(msg);
+                    byte[] sendArrMsg = new byte[arrMsg.Length + 1];
 
-                // set the msg type
-                sendArrMsg[0] = flag;
-                Buffer.BlockCopy(arrMsg, 0, sendArrMsg, 1, arrMsg.Length);
+                    // set the msg type
+                    sendArrMsg[0] = flag;
+                    Buffer.BlockCopy(arrMsg, 0, sendArrMsg, 1, arrMsg.Length);
 
-                socketClient.Send(sendArrMsg);
-            }
-            catch (SocketException se)
-            {
-                Console.WriteLine("[SocketError] send message error : {0}", se.Message);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("[Error] send message error : {0}", e.Message);
-            }
+                    socketClient.Send(sendArrMsg);
+                }
+                catch (SocketException se)
+                {
+                    Console.WriteLine("[SocketError] send message error : {0}", se.Message);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("[Error] send message error : {0}", e.Message);
+                }
+            }           
         }
         #endregion
 
