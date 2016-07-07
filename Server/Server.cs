@@ -34,9 +34,9 @@ namespace Server
         public static Dictionary<string, Handler> dictHandler = new Dictionary<string, Handler>();
 
         // File locker
-        public static Dictionary<string, Object> dictLocker = new Dictionary<string, object>();
+        public static Dictionary<string, Object> dictLock = new Dictionary<string, object>();
 
-        private static Object disconnectLocker = new Object();
+        private static Object disconnectLock = new Object();
 
         public Server()
         {
@@ -48,7 +48,7 @@ namespace Server
         /// </summary>
         public static void StartServer()
         {
-            dictLocker.Add("room", new Object());
+            dictLock.Add("room", new Object());
 
             // Create a socket, use IPv4, stream connection and TCP
             socketWatch = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -72,7 +72,7 @@ namespace Server
                 // Start the thread
                 threadWatch.Start();
 
-                InitRoomLocker();
+                InitRoomLock();
 
                 Console.WriteLine();
                 Console.WriteLine("                               ---Server Start---");
@@ -204,23 +204,32 @@ namespace Server
         /// <param name="clientIP">the client IP</param>
         public static void RemoveOfflineUser(string clientIP)
         {
-            lock (disconnectLocker)
+            Thread tmp = dictThread[clientIP];
+            try
             {
-                Console.WriteLine("User IP : " + clientIP + " has went off line.");
-
-                if (dictSocket.ContainsKey(clientIP))
+                lock (disconnectLock)
                 {
-                    dictSocket[clientIP].Close();
-                    dictSocket.Remove(clientIP);
-                }
+                    Console.WriteLine("User IP : " + clientIP + " has went off line.");
 
-                if (dictThread.ContainsKey(clientIP))
-                {
-                    Thread tmp = dictThread[clientIP];
-                    dictThread.Remove(clientIP);
-                    tmp.Abort();
-                }
-            }          
+                    if (dictSocket.ContainsKey(clientIP))
+                    {
+                        dictSocket[clientIP].Close();
+                        dictSocket.Remove(clientIP);
+                    }
+
+                    if (dictThread.ContainsKey(clientIP))
+                    {
+                        
+                        dictThread.Remove(clientIP);
+                        
+                    }
+                } 
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[Error]Exception happens during deleting friends! [ExceptionMsg]" + e.Message);
+            }
+            tmp.Abort();        
         }
         #endregion
 
@@ -228,24 +237,31 @@ namespace Server
         /// <summary>
         ///     Init Room Locker
         /// </summary>
-        private static void InitRoomLocker()
+        private static void InitRoomLock()
         {
-            lock(Server.dictLocker["room"])
+            try
             {
-                string roomFile = "room.txt";
-                if (!File.Exists(@roomFile))
+                lock (Server.dictLock["room"])
                 {
-                    FileStream fs = new FileStream(roomFile, FileMode.Create);
-                    fs.Close();
-                }
+                    string roomFile = "room.txt";
+                    if (!File.Exists(@roomFile))
+                    {
+                        FileStream fs = new FileStream(roomFile, FileMode.Create);
+                        fs.Close();
+                    }
 
-                StreamReader sr = new StreamReader(roomFile, Encoding.UTF8);
+                    StreamReader sr = new StreamReader(roomFile, Encoding.UTF8);
 
-                String lineMsg;
-                while ((lineMsg = sr.ReadLine()) != null)
-                    dictLocker.Add(lineMsg.Trim(), new Object());
-                sr.Close();
-            }           
+                    String lineMsg;
+                    while ((lineMsg = sr.ReadLine()) != null)
+                        dictLock.Add(lineMsg.Trim(), new Object());
+                    sr.Close();
+                } 
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[Error]Exception happens during initializing the file lock. [ExceptionMsg]" + e.Message);
+            }
 
         }
         #endregion
@@ -277,16 +293,26 @@ namespace Server
             foreach (string room in roomList)
             {
                 string roomFile = "DataBase\\"+room + ".txt";
-                if (!Server.dictLocker.ContainsKey(room))
+                if (!Server.dictLock.ContainsKey(room))
                 {
-                    Server.dictLocker.Add(room, new Object());
+                    Server.dictLock.Add(room, new Object());
 
-                    lock(Server.dictLocker[room])
+                    try
                     {
-                        FileStream fs = new FileStream(roomFile, FileMode.Create);
-                        fs.Close();
+                        lock (Server.dictLock[room])
+                        {
+                            FileStream fs = new FileStream(roomFile, FileMode.Create);
+                            fs.Close();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("[Error]Exception happens during creating new room " + room + " in FUNC[CheckRoomList]. [ExceptionMsg]" + e.Message);
+                    }
 
-                        lock (Server.dictLocker["room"])
+                    try
+                    {
+                        lock (Server.dictLock["room"])
                         {
                             string romFile = "room.txt";
 
@@ -294,13 +320,19 @@ namespace Server
 
                             f.Position = f.Length;
 
-                            byte[] writeMsg = Encoding.UTF8.GetBytes(room+"\r\n");
+                            byte[] writeMsg = Encoding.UTF8.GetBytes(room + "\r\n");
 
                             f.Write(writeMsg, 0, writeMsg.Length);
 
                             f.Close();
                         }
                     }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("[Error]Exception happens during add room " + room + " into roomlist file. [ExceptionMsg]" + e.Message);
+                    }
+                    
+                    
                 }
             }
         }
@@ -321,57 +353,78 @@ namespace Server
 
             MsgHandler msgHandler;
 
-            String sendMsg;
+            String sendMsg = "";
 
-            if (Server.dictLocker.ContainsKey(roomId))
+            if (Server.dictLock.ContainsKey(roomId))
             {
-                lock(Server.dictLocker[roomId])
+                try
                 {
-                    StreamReader sr = new StreamReader(roomFile, Encoding.UTF8);
-
-                    String lineMsg;
-                    while ((lineMsg = sr.ReadLine()) != null)
+                    lock (Server.dictLock[roomId])
                     {
-                        lineMsg += ("\r\n" + sr.ReadLine());
-                        msgList.Add(lineMsg);
+                        StreamReader sr = new StreamReader(roomFile, Encoding.UTF8);
+
+                        String lineMsg;
+                        while ((lineMsg = sr.ReadLine()) != null)
+                        {
+                            lineMsg += ("\r\n" + sr.ReadLine());
+                            msgList.Add(lineMsg);
+                        }
+
+
+                        sr.Close();
                     }
-                        
 
-                    sr.Close();
-                }                
+                    msgHandler = new MsgHandler(roomId, msgList);
 
-                msgHandler = new MsgHandler(roomId, msgList);
-
-                sendMsg = JsonConvert.SerializeObject(msgHandler);
+                    sendMsg = JsonConvert.SerializeObject(msgHandler);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine("[Error]Exception happens during getting message from room " + roomId + ". [ExceptionMsg]" + e.Message);
+                }
             }
             else
             {
-                Server.dictLocker.Add(roomId, new Object());
+                Server.dictLock.Add(roomId, new Object());
 
-                lock (Server.dictLocker[roomId])
+                lock (Server.dictLock[roomId])
                 {
-                    FileStream fs = new FileStream(roomFile, FileMode.Create);
-                    fs.Close();
-
-                    lock (Server.dictLocker["room"])
+                    try
                     {
-                        string romFile = "room.txt";
+                        FileStream fs = new FileStream(roomFile, FileMode.Create);
+                        fs.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("[Error]Exception happens during creating new room " + roomId + "  in FUNC[GetRoomMsg]. [ExceptionMsg]" + e.Message);
+                    }
 
-                        FileStream f = File.OpenWrite(romFile);
+                    try
+                    {
+                        lock (Server.dictLock["room"])
+                        {
+                            string romFile = "room.txt";
 
-                        f.Position = f.Length;
+                            FileStream f = File.OpenWrite(romFile);
 
-                        byte[] writeMsg = Encoding.UTF8.GetBytes(roomId + "\r\n");
+                            f.Position = f.Length;
 
-                        f.Write(writeMsg, 0, writeMsg.Length);
+                            byte[] writeMsg = Encoding.UTF8.GetBytes(roomId + "\r\n");
 
-                        f.Close();
+                            f.Write(writeMsg, 0, writeMsg.Length);
+
+                            f.Close();
+
+                            msgHandler = new MsgHandler(roomId);
+
+                            sendMsg = JsonConvert.SerializeObject(msgHandler);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("[Error]Exception happens during getting message from room " + roomId + ". P.S:It shouldn't be here. [ExceptionMsg]" + e.Message);
                     }
                 }
-
-                msgHandler = new MsgHandler(roomId);
-
-                sendMsg = JsonConvert.SerializeObject(msgHandler);
             }
 
             SendMessage(clientIP, SEND_MSG, sendMsg);          
@@ -391,33 +444,52 @@ namespace Server
 
             string roomFile = "DataBase\\" + msgHandler.roomId + ".txt";
 
-            if (Server.dictLocker.ContainsKey(msgHandler.roomId))
+            
+
+            if (Server.dictLock.ContainsKey(msgHandler.roomId))
             {
-                lock (Server.dictLocker[msgHandler.roomId])
+                try
                 {
-                    FileStream fs = File.OpenWrite(roomFile);
-
-                    fs.Position = fs.Length;
-
-                    foreach (string message in msgHandler.msgList)
+                    lock (Server.dictLock[msgHandler.roomId])
                     {
-                        byte[] writeMsg = Encoding.UTF8.GetBytes(message + "\r\n");
-                        fs.Write(writeMsg, 0, writeMsg.Length);
-                    }
+                        FileStream fs = File.OpenWrite(roomFile);
 
-                    fs.Close();
+                        fs.Position = fs.Length;
+
+                        foreach (string message in msgHandler.msgList)
+                        {
+                            byte[] writeMsg = Encoding.UTF8.GetBytes(message + "\r\n");
+                            fs.Write(writeMsg, 0, writeMsg.Length);
+                        }
+
+                        fs.Close();
+                    }
                 }
+                catch(Exception e)
+                {
+                    Console.WriteLine("[Error]Exception happens during writing message into room " + msgHandler.roomId + ". [ExceptionMsg]" + e.Message);
+                }
+                
             }
             else
             {
-                Server.dictLocker.Add(msgHandler.roomId, new Object());
-
-                lock (Server.dictLocker[msgHandler.roomId])
+                Server.dictLock.Add(msgHandler.roomId, new Object());
+                
+                try
                 {
-                    FileStream fs = new FileStream(roomFile, FileMode.Create);
-                    fs.Close();
-
-                    lock (Server.dictLocker["room"])
+                    lock (Server.dictLock[msgHandler.roomId])
+                    {
+                        FileStream fs = new FileStream(roomFile, FileMode.Create);
+                        fs.Close();
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("[Error]Exception happens during creating new room " + msgHandler.roomId + "  in FUNC[AddMsgToFile]. [ExceptionMsg]" + e.Message);
+                }
+                try
+                {
+                    lock (Server.dictLock["room"])
                     {
                         string romFile = "room.txt";
 
@@ -430,8 +502,13 @@ namespace Server
                         f.Write(writeMsg, 0, writeMsg.Length);
 
                         f.Close();
-                    }
+                    }  
                 }
+                catch (Exception e)
+                {
+                    Console.WriteLine("[Error]Exception happens during writing message into room " + msgHandler.roomId + " in FUNC[AddMsgToFile]. [ExceptionMsg]" + e.Message);
+                } 
+                
             }
 
             GetRoomMsg(clientIP, msgHandler.roomId);
