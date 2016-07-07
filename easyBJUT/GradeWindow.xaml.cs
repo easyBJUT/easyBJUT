@@ -403,12 +403,39 @@ namespace easyBJUT
 
         private void sendMsg_Click(object sender, RoutedEventArgs e)
         {
-            string room = (string)courseList.SelectedItem;
-            string msg = (string)inputTextBox.Text;
+            List<string> msgList=new List<string>();
+            msgList.Add("日狗");
+            msgList.Add("sb");
+            msgList.Add("傻逼");
+            msgList.Add("cnm");
+            msgList.Add("我操");
+            msgList.Add("fuck");
+            if(inputTextBox.Text=="")
+            {
+                MessageBox.Show("请输入吐槽内容！");
+            }
+            else 
+            {
+                bool flag=true;
+                foreach (string message in msgList)
+                {
+                    if (inputTextBox.Text.Contains(message) || nickname.Text.Contains(message))
+                    {
+                        MessageBox.Show("请注意素质，文明用语！");
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag)
+                {
+                    string room = (string)courseList.SelectedItem;
+                    string msg = (string)inputTextBox.Text;
 
-            inputTextBox.Text = "";
+                    inputTextBox.Text = "";
 
-            AddNewMsg(room, nickname.Text.Trim() + "：" + DateTime.Now.ToString().Substring(0, DateTime.Now.ToString().Length-3) + "\r\n    " + msg);
+                    AddNewMsg(room, nickname.Text.Trim() + "：" + DateTime.Now.ToString().Substring(0, DateTime.Now.ToString().Length - 3) + "\r\n    " + msg);
+                }
+            }
         }
 
         private void update_Click(object sender, RoutedEventArgs e)
