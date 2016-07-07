@@ -19,6 +19,7 @@ using System.Net.Sockets;
 using System.Net;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
+using System.Web;
 
 
 namespace easyBJUT
@@ -29,16 +30,18 @@ namespace easyBJUT
     public partial class GradeWindow : Window
     {
         // Status Key
-        private const byte CHECK_ROOM_LIST = 0;
-        private const byte REQUEST_ROOM_MSG = 1;
-        private const byte SEND_MSG = 2;
-        private const byte DISCONNECT = 3;
-        private const byte IS_RECEIVE_MSG = 4;
-        private const byte IS_NOT_RECEIVE_MSG = 5;
-        private const byte INVALID_MESSAGE = 6;
+        private const char CHECK_ROOM_LIST = '0';
+        private const char REQUEST_ROOM_MSG = '1';
+        private const char SEND_MSG = '2';
+        private const char DISCONNECT = '3';
+        private const char IS_RECEIVE_MSG = '4';
+        private const char IS_NOT_RECEIVE_MSG = '5';
+        private const char INVALID_MESSAGE = '6';
 
         private const string ipAddr = "172.21.22.161";  // watching IP
         private const int port = 3000;              // watching port
+
+        private Object sendLock = new Object();
 
         // client thread, used for receive message
         private Thread threadClient = null;
@@ -50,6 +53,21 @@ namespace easyBJUT
         public GradeWindow()
         {
             InitializeComponent();
+            String filePath = System.Environment.CurrentDirectory + "/webwxgetmsgimg.png";
+
+            GradeHandler.LoadDataFromExcel();
+
+            BinaryReader binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
+            FileInfo fileInfo = new FileInfo(filePath);
+            byte[] bytes = binReader.ReadBytes((int)fileInfo.Length);
+            binReader.Close();
+
+            // Init bitmap
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.StreamSource = new MemoryStream(bytes);
+            bitmap.EndInit();
+            title.Source = bitmap;
 
             chatRoom = new List<string>();
             courseList.ItemsSource = chatRoom;
@@ -69,13 +87,37 @@ namespace easyBJUT
                 threadClient.IsBackground = true;
                 threadClient.Start();
 
-                GradeHandler.LoadDataFromExcel();
-
                 DataTable dataTable;
                 while(!GradeHandler.GetCourseIdAndName(out dataTable));
 
                 foreach (DataRow dr in dataTable.Rows)
-                    chatRoom.Add(Convert.ToString(dr["课程名称"])+"("+Convert.ToString(dr["课程代码"])+")");
+                {
+                    string courseName = Convert.ToString(dr["课程名称"]);
+                    string courseId = Convert.ToString(dr["课程代码"]);
+
+                    courseName = courseName.Replace('/', '_');
+                    courseName = courseName.Replace('\\', '_');
+                    courseName = courseName.Replace(':', '_');
+                    courseName = courseName.Replace('*', '_');
+                    courseName = courseName.Replace('?', '_');
+                    courseName = courseName.Replace('\"', '_');
+                    courseName = courseName.Replace('>', '_');
+                    courseName = courseName.Replace('<', '_');
+                    courseName = courseName.Replace('|', '_');
+
+                    courseId = courseId.Replace('/', '_');
+                    courseId = courseId.Replace('\\', '_');
+                    courseId = courseId.Replace(':', '_');
+                    courseId = courseId.Replace('*', '_');
+                    courseId = courseId.Replace('?', '_');
+                    courseId = courseId.Replace('\"', '_');
+                    courseId = courseId.Replace('>', '_');
+                    courseId = courseId.Replace('<', '_');
+                    courseId = courseId.Replace('|', '_');
+
+                    chatRoom.Add(courseName + "(" + courseId + ")");
+                }
+                    
 
                 CheckRoomList(chatRoom);
 
@@ -89,6 +131,7 @@ namespace easyBJUT
                 MessageBox.Show("[Error]Connection failed: " + ex.Message);
             }
         }
+
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -179,14 +222,6 @@ namespace easyBJUT
                     fi.Attributes = FileAttributes.Normal;
                 File.Delete(filespath);
             }
-            filespath = Directory.GetCurrentDirectory() + "/image.jpg";
-            if (File.Exists(filespath))
-            {
-                FileInfo fi = new FileInfo(filespath);
-                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
-                    fi.Attributes = FileAttributes.Normal;
-                File.Delete(filespath);
-            }
             GoOffLine();
             base.OnClosing(e);
         }
@@ -247,27 +282,30 @@ namespace easyBJUT
         /// </summary>
         /// <param name="flag">msg type</param>
         /// <param name="msg">message</param>
-        private void SendMsg(byte flag, string msg)
+        private void SendMsg(char flag, string msg)
         {
-            try
+            lock(sendLock)
             {
-                byte[] arrMsg = Encoding.UTF8.GetBytes(msg);
-                byte[] sendArrMsg = new byte[arrMsg.Length + 1];
+                try
+                {
+                    msg = flag + msg;
 
-                // set the msg type
-                sendArrMsg[0] = flag;
-                Buffer.BlockCopy(arrMsg, 0, sendArrMsg, 1, arrMsg.Length);
+                    msg = WebUtility.HtmlEncode(msg);
+                    msg += '<';
 
-                socketClient.Send(sendArrMsg);
-            }
-            catch (SocketException se)
-            {
-                Console.WriteLine("[SocketError] send message error : {0}", se.Message);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("[Error] send message error : {0}", e.Message);
-            }
+                    byte[] arrMsg = Encoding.UTF8.GetBytes(msg);
+
+                    socketClient.Send(arrMsg);
+                }
+                catch (SocketException se)
+                {
+                    Console.WriteLine("[SocketError] send message error : {0}", se.Message);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("[Error] send message error : {0}", e.Message);
+                }
+            }           
         }
         #endregion
 
@@ -291,40 +329,53 @@ namespace easyBJUT
                     length = socketClient.Receive(arrMsg);
 
                     // encoding the message
-                    string msgReceive = Encoding.UTF8.GetString(arrMsg, 1, length-1);
+                    string tmp = Encoding.UTF8.GetString(arrMsg, 0, length);
 
-                    if (arrMsg[0] == SEND_MSG)
+                    string[] str = tmp.Split('<');
+                    
+                    foreach (string s in str)
                     {
-                        ReceiveMsgFromServer(msgReceive);
-                    }
-                    else if (arrMsg[0] == IS_RECEIVE_MSG)
-                    {
-                        Application.Current.Dispatcher.Invoke(new Action(delegate
+                        string msgReceive = WebUtility.HtmlDecode(s);
+
+                        if (msgReceive.Length > 0)
                         {
-                            MessageBox.Show("发送消息成功");
-                        }));
+                            if (msgReceive[0] == SEND_MSG)
+                            {
+                                ReceiveMsgFromServer(msgReceive.Substring(1, msgReceive.Length-1));
+                            }
+                            else if (msgReceive[0] == IS_RECEIVE_MSG)
+                            {
+                                Application.Current.Dispatcher.Invoke(new Action(delegate
+                                {
+                                    MessageBox.Show("发送消息成功");
+                                }));
+                            }
+                            else if (msgReceive[0] == IS_NOT_RECEIVE_MSG)
+                            {
+                                Application.Current.Dispatcher.Invoke(new Action(delegate
+                                {
+                                    MessageBox.Show("[Error]发送消息失败");
+                                }));
+                            }
+                            else if (msgReceive[0] == INVALID_MESSAGE)
+                            {
+                                Application.Current.Dispatcher.Invoke(new Action(delegate
+                                {
+                                    MessageBox.Show("[Error]通信过程出错");
+                                }));
+                            }
+                            else
+                            {
+                                Application.Current.Dispatcher.Invoke(new Action(delegate
+                                {
+                                    MessageBox.Show("[Error]通信过程出错");
+                                }));
+                            }
+                        }
+
                     }
-                    else if (arrMsg[0] == IS_NOT_RECEIVE_MSG)
-                    {
-                        Application.Current.Dispatcher.Invoke(new Action(delegate
-                        {
-                            MessageBox.Show("[Error]发送消息失败");
-                        }));
-                    }
-                    else if (arrMsg[0] == INVALID_MESSAGE)
-                    {
-                        Application.Current.Dispatcher.Invoke(new Action(delegate
-                        {
-                            MessageBox.Show("[Error]通信过程出错");
-                        }));
-                    }
-                    else
-                    {
-                        Application.Current.Dispatcher.Invoke(new Action(delegate
-                        {
-                            MessageBox.Show("[Error]通信过程出错");
-                        }));
-                    }
+
+                    
 
                 }
                 catch (SocketException se)
@@ -351,7 +402,8 @@ namespace easyBJUT
             MsgHandler msgHandler = (MsgHandler)JsonConvert.DeserializeObject(msgReceive, typeof(MsgHandler));
             string roomId = msgHandler.roomId;
             List<string> msgList = msgHandler.msgList;
-
+            byte backR, backG, backB;
+            Random ran=new Random();
             Application.Current.Dispatcher.Invoke(new Action(delegate
             {
                 tucaoWall.Document.Blocks.Clear();
@@ -361,11 +413,15 @@ namespace easyBJUT
                     {
                         // TODO : 将消息逐一添加到显示框中
                         Paragraph newParagraph = new Paragraph();
-
+                        backR = (byte)ran.Next(0x80, 0xFF);
+                        backG = (byte)ran.Next(0x80, 0xFF);
+                        backB = (byte)ran.Next(0x80, 0xFF);
                         InlineUIContainer inlineUIContainer = new InlineUIContainer()
                         {
+                            
                             Child = new TextBlock()
                             {
+                                Background = new SolidColorBrush(Color.FromArgb(0xBF, backR, backG, backB)),
                                 Foreground = new SolidColorBrush(Colors.Black),
                                 TextWrapping = TextWrapping.Wrap,
                                 Text = msg + "\r\n"
@@ -391,12 +447,39 @@ namespace easyBJUT
 
         private void sendMsg_Click(object sender, RoutedEventArgs e)
         {
-            string room = (string)courseList.SelectedItem;
-            string msg = (string)inputTextBox.Text;
+            List<string> msgList=new List<string>();
+            msgList.Add("日狗");
+            msgList.Add("sb");
+            msgList.Add("傻逼");
+            msgList.Add("cnm");
+            msgList.Add("我操");
+            msgList.Add("fuck");
+            if(inputTextBox.Text=="")
+            {
+                MessageBox.Show("请输入吐槽内容！");
+            }
+            else 
+            {
+                bool flag=true;
+                foreach (string message in msgList)
+                {
+                    if (inputTextBox.Text.Contains(message) || nickname.Text.Contains(message))
+                    {
+                        MessageBox.Show("请注意素质，文明用语！");
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag)
+                {
+                    string room = (string)courseList.SelectedItem;
+                    string msg = (string)inputTextBox.Text;
 
-            inputTextBox.Text = "";
+                    inputTextBox.Text = "";
 
-            AddNewMsg(room, nickname.Text.Trim() + "：" + DateTime.Now.ToString().Substring(0, DateTime.Now.ToString().Length-3) + "\r\n    " + msg);
+                    AddNewMsg(room, nickname.Text.Trim() + "：" + DateTime.Now.ToString().Substring(0, DateTime.Now.ToString().Length - 3) + "\r\n    " + msg);
+                }
+            }
         }
 
         private void update_Click(object sender, RoutedEventArgs e)
