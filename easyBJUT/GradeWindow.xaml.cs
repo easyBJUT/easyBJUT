@@ -50,6 +50,20 @@ namespace easyBJUT
         public GradeWindow()
         {
             InitializeComponent();
+            String filePath = System.Environment.CurrentDirectory + "/webwxgetmsgimg.png";
+
+
+            BinaryReader binReader = new BinaryReader(File.Open(filePath, FileMode.Open));
+            FileInfo fileInfo = new FileInfo(filePath);
+            byte[] bytes = binReader.ReadBytes((int)fileInfo.Length);
+            binReader.Close();
+
+            // Init bitmap
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.StreamSource = new MemoryStream(bytes);
+            bitmap.EndInit();
+            title.Source = bitmap;
 
             chatRoom = new List<string>();
             courseList.ItemsSource = chatRoom;
@@ -89,6 +103,7 @@ namespace easyBJUT
                 MessageBox.Show("[Error]Connection failed: " + ex.Message);
             }
         }
+
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -172,14 +187,6 @@ namespace easyBJUT
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             string filespath = Directory.GetCurrentDirectory() + "/score.xls";
-            if (File.Exists(filespath))
-            {
-                FileInfo fi = new FileInfo(filespath);
-                if (fi.Attributes.ToString().IndexOf("ReadOnly") != -1)
-                    fi.Attributes = FileAttributes.Normal;
-                File.Delete(filespath);
-            }
-            filespath = Directory.GetCurrentDirectory() + "/image.jpg";
             if (File.Exists(filespath))
             {
                 FileInfo fi = new FileInfo(filespath);
@@ -351,7 +358,8 @@ namespace easyBJUT
             MsgHandler msgHandler = (MsgHandler)JsonConvert.DeserializeObject(msgReceive, typeof(MsgHandler));
             string roomId = msgHandler.roomId;
             List<string> msgList = msgHandler.msgList;
-
+            byte backR, backG, backB;
+            Random ran=new Random();
             Application.Current.Dispatcher.Invoke(new Action(delegate
             {
                 tucaoWall.Document.Blocks.Clear();
@@ -361,11 +369,15 @@ namespace easyBJUT
                     {
                         // TODO : 将消息逐一添加到显示框中
                         Paragraph newParagraph = new Paragraph();
-
+                        backR = (byte)ran.Next(0x80, 0xFF);
+                        backG = (byte)ran.Next(0x80, 0xFF);
+                        backB = (byte)ran.Next(0x80, 0xFF);
                         InlineUIContainer inlineUIContainer = new InlineUIContainer()
                         {
+                            
                             Child = new TextBlock()
                             {
+                                Background = new SolidColorBrush(Color.FromArgb(0xBF, backR, backG, backB)),
                                 Foreground = new SolidColorBrush(Colors.Black),
                                 TextWrapping = TextWrapping.Wrap,
                                 Text = msg + "\r\n"
@@ -391,12 +403,39 @@ namespace easyBJUT
 
         private void sendMsg_Click(object sender, RoutedEventArgs e)
         {
-            string room = (string)courseList.SelectedItem;
-            string msg = (string)inputTextBox.Text;
+            List<string> msgList=new List<string>();
+            msgList.Add("日狗");
+            msgList.Add("sb");
+            msgList.Add("傻逼");
+            msgList.Add("cnm");
+            msgList.Add("我操");
+            msgList.Add("fuck");
+            if(inputTextBox.Text=="")
+            {
+                MessageBox.Show("请输入吐槽内容！");
+            }
+            else 
+            {
+                bool flag=true;
+                foreach (string message in msgList)
+                {
+                    if (inputTextBox.Text.Contains(message) || nickname.Text.Contains(message))
+                    {
+                        MessageBox.Show("请注意素质，文明用语！");
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag)
+                {
+                    string room = (string)courseList.SelectedItem;
+                    string msg = (string)inputTextBox.Text;
 
-            inputTextBox.Text = "";
+                    inputTextBox.Text = "";
 
-            AddNewMsg(room, nickname.Text.Trim() + "：" + DateTime.Now.ToString().Substring(0, DateTime.Now.ToString().Length-3) + "\r\n    " + msg);
+                    AddNewMsg(room, nickname.Text.Trim() + "：" + DateTime.Now.ToString().Substring(0, DateTime.Now.ToString().Length - 3) + "\r\n    " + msg);
+                }
+            }
         }
 
         private void update_Click(object sender, RoutedEventArgs e)
