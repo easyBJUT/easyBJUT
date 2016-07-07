@@ -1,6 +1,7 @@
 ﻿<Window x:Class="easyBJUT.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        ResizeMode="CanMinimize"
         Title="登录" Height="260" Width="360">
     <Grid>     
         <Canvas x:Name="loginCanvas">

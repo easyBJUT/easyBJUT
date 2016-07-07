@@ -89,7 +89,33 @@ namespace easyBJUT
                 while(!GradeHandler.GetCourseIdAndName(out dataTable));
 
                 foreach (DataRow dr in dataTable.Rows)
-                    chatRoom.Add(Convert.ToString(dr["课程名称"])+"("+Convert.ToString(dr["课程代码"])+")");
+                {
+                    string courseName = Convert.ToString(dr["课程名称"]);
+                    string courseId = Convert.ToString(dr["课程代码"]);
+
+                    courseName = courseName.Replace('/', '_');
+                    courseName = courseName.Replace('\\', '_');
+                    courseName = courseName.Replace(':', '_');
+                    courseName = courseName.Replace('*', '_');
+                    courseName = courseName.Replace('?', '_');
+                    courseName = courseName.Replace('\"', '_');
+                    courseName = courseName.Replace('>', '_');
+                    courseName = courseName.Replace('<', '_');
+                    courseName = courseName.Replace('|', '_');
+
+                    courseId = courseId.Replace('/', '_');
+                    courseId = courseId.Replace('\\', '_');
+                    courseId = courseId.Replace(':', '_');
+                    courseId = courseId.Replace('*', '_');
+                    courseId = courseId.Replace('?', '_');
+                    courseId = courseId.Replace('\"', '_');
+                    courseId = courseId.Replace('>', '_');
+                    courseId = courseId.Replace('<', '_');
+                    courseId = courseId.Replace('|', '_');
+
+                    chatRoom.Add(courseName + "(" + courseId + ")");
+                }
+                    
 
                 CheckRoomList(chatRoom);
 
